@@ -10,14 +10,8 @@ import com.pvptoggle.PvPTogglePlugin;
 import com.pvptoggle.model.PlayerData;
 import com.pvptoggle.util.MessageUtil;
 
-/**
- * Handles player join / quit:
- * <ul>
- *   <li>Ensures a {@link PlayerData} record exists on join.</li>
- *   <li>Notifies the player if they still have forced-PvP debt.</li>
- *   <li>Persists data on quit so nothing is lost if the server crashes.</li>
- * </ul>
- */
+// Join: load/create player data + remind about outstanding debt.
+// Quit: save immediately so you can't dodge debt by logging off.
 public class PlayerListener implements Listener {
 
     private final PvPTogglePlugin plugin;

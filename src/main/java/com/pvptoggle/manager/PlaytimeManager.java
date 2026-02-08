@@ -1,22 +1,18 @@
 package com.pvptoggle.manager;
 
-import com.pvptoggle.PvPTogglePlugin;
-import com.pvptoggle.model.PlayerData;
-import com.pvptoggle.util.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-/**
- * Ticks once per second for every online player:
- * <ol>
- *   <li>Increments cumulative playtime.</li>
- *   <li>Checks if a new hour-milestone was reached → adds forced-PvP debt.</li>
- *   <li>Counts down debt <b>only while 2+ players are online</b>
- *       (solo time still accumulates hours but the debt timer is paused).</li>
- *   <li>Shows an action-bar HUD while debt is active.</li>
- * </ol>
+import com.pvptoggle.PvPTogglePlugin;
+import com.pvptoggle.model.PlayerData;
+import com.pvptoggle.util.MessageUtil;
+
+/*
+ * Runs a 1-second tick for every online player: tracks cumulative playtime,
+ * generates forced-PvP debt at hour milestones, and counts it down (only
+ * when 2+ players are online). Also handles the action-bar HUD + auto-save.
  */
 public class PlaytimeManager {
 
@@ -27,8 +23,6 @@ public class PlaytimeManager {
     public PlaytimeManager(PvPTogglePlugin plugin) {
         this.plugin = plugin;
     }
-
-    /* ---- Lifecycle ---- */
 
     public void startTracking() {
         // Main tick — every 20 ticks (1 second)
@@ -55,57 +49,54 @@ public class PlaytimeManager {
         if (saveTask != null) saveTask.cancel();
     }
 
-    /* ---- Core tick ---- */
-
     private void tick() {
         int onlineCount = Bukkit.getOnlinePlayers().size();
-        int hoursPerCycle = plugin.getConfig().getInt("playtime.hours-per-cycle", 1);
+        long cycleSeconds = plugin.getConfig().getInt("playtime.hours-per-cycle", 1) * 3600L;
         int forcedMinutes = plugin.getConfig().getInt("playtime.forced-minutes", 20);
-        long cycleSeconds = hoursPerCycle * 3600L;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
-
-            // 1) Always increment playtime
             data.setTotalPlaytimeSeconds(data.getTotalPlaytimeSeconds() + 1);
+            checkCycleMilestones(player, data, cycleSeconds, forcedMinutes);
+            tickDebt(player, data, onlineCount);
+        }
+    }
 
-            // 2) Check for new cycle milestones
-            int currentCycles = (int) (data.getTotalPlaytimeSeconds() / cycleSeconds);
-            if (currentCycles > data.getProcessedCycles()) {
-                int newCycles = currentCycles - data.getProcessedCycles();
-                data.setProcessedCycles(currentCycles);
+    private void checkCycleMilestones(Player player, PlayerData data, long cycleSeconds, int forcedMinutes) {
+        int currentCycles = (int) (data.getTotalPlaytimeSeconds() / cycleSeconds);
+        if (currentCycles <= data.getProcessedCycles()) return;
 
-                // Only generate debt if the player doesn't have the bypass permission
-                if (!player.hasPermission("pvptoggle.bypass")) {
-                    long additionalDebt = newCycles * forcedMinutes * 60L;
-                    data.setPvpDebtSeconds(data.getPvpDebtSeconds() + additionalDebt);
-                    MessageUtil.send(player,
-                            "&c&l⚔ Forced PvP activated! &7Duration: &f"
-                                    + MessageUtil.formatTime(data.getPvpDebtSeconds()));
-                }
-            }
+        int newCycles = currentCycles - data.getProcessedCycles();
+        data.setProcessedCycles(currentCycles);
 
-            // 3) Count down debt (only when 2+ players online)
-            if (data.getPvpDebtSeconds() > 0 && !player.hasPermission("pvptoggle.bypass")) {
-                if (onlineCount >= 2) {
-                    data.setPvpDebtSeconds(data.getPvpDebtSeconds() - 1);
-                }
+        if (!player.hasPermission("pvptoggle.bypass")) {
+            long additionalDebt = newCycles * forcedMinutes * 60L;
+            data.setPvpDebtSeconds(data.getPvpDebtSeconds() + additionalDebt);
+            MessageUtil.send(player,
+                    "&c&l⚔ Forced PvP activated! &7Duration: &f"
+                            + MessageUtil.formatTime(data.getPvpDebtSeconds()));
+        }
+    }
 
-                if (data.getPvpDebtSeconds() <= 0) {
-                    data.setPvpDebtSeconds(0);
-                    MessageUtil.send(player, "&a&l⚔ Your forced PvP period has ended!");
-                    MessageUtil.sendActionBar(player, "&a✓ Forced PvP ended");
-                } else {
-                    // Show action-bar HUD
-                    String status = (onlineCount >= 2)
-                            ? "&c⚔ Forced PvP"
-                            : "&e⚔ Forced PvP &7(paused — solo)";
-                    MessageUtil.sendActionBar(player,
-                            status + " &7| &f"
-                                    + MessageUtil.formatTime(data.getPvpDebtSeconds())
-                                    + " &7remaining");
-                }
-            }
+    private void tickDebt(Player player, PlayerData data, int onlineCount) {
+        if (data.getPvpDebtSeconds() <= 0 || player.hasPermission("pvptoggle.bypass")) return;
+
+        if (onlineCount >= 2) {
+            data.setPvpDebtSeconds(data.getPvpDebtSeconds() - 1);
+        }
+
+        if (data.getPvpDebtSeconds() <= 0) {
+            data.setPvpDebtSeconds(0);
+            MessageUtil.send(player, "&a&l⚔ Your forced PvP period has ended!");
+            MessageUtil.sendActionBar(player, "&a✓ Forced PvP ended");
+        } else {
+            String status = (onlineCount >= 2)
+                    ? "&c⚔ Forced PvP"
+                    : "&e⚔ Forced PvP &7(paused — solo)";
+            MessageUtil.sendActionBar(player,
+                    status + " &7| &f"
+                            + MessageUtil.formatTime(data.getPvpDebtSeconds())
+                            + " &7remaining");
         }
     }
 }

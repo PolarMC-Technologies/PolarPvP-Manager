@@ -2,7 +2,7 @@ package com.pvptoggle.command;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.bukkit.command.Command;
@@ -14,14 +14,7 @@ import com.pvptoggle.PvPTogglePlugin;
 import com.pvptoggle.model.PlayerData;
 import com.pvptoggle.util.MessageUtil;
 
-/**
- * <pre>
- * /pvp          — show status
- * /pvp on       — enable PvP
- * /pvp off      — disable PvP (denied while forced)
- * /pvp status   — show detailed status
- * </pre>
- */
+// /pvp on|off|status
 public class PvPCommand implements TabExecutor {
 
     private final PvPTogglePlugin plugin;
@@ -33,8 +26,8 @@ public class PvPCommand implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("This command can only be used by players.");
-            return true;
+            MessageUtil.send(sender, "&cThis command can only be used by players.");
+            return false;
         }
 
         if (args.length == 0) {
@@ -46,12 +39,10 @@ public class PvPCommand implements TabExecutor {
             case "on"     -> toggleOn(player);
             case "off"    -> toggleOff(player);
             case "status" -> showStatus(player);
-            default       -> MessageUtil.send(player, "&cUsage: /pvp <on|off|status>");
+            default       -> { return false; }
         }
         return true;
     }
-
-    /* ---- Sub-commands ---- */
 
     private void toggleOn(Player player) {
         PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
@@ -69,9 +60,10 @@ public class PvPCommand implements TabExecutor {
                                 "&c&lYou are in a forced PvP zone! PvP cannot be disabled here."));
             } else {
                 PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
-                String msg = plugin.getConfig().getString("messages.pvp-forced-playtime",
-                                "&c&lPvP is forced due to playtime! &f%time% &cremaining.")
-                        .replace("%time%", MessageUtil.formatTime(data.getPvpDebtSeconds()));
+                String template = Objects.requireNonNullElse(
+                        plugin.getConfig().getString("messages.pvp-forced-playtime"),
+                        "&c&lPvP is forced due to playtime! &f%time% &cremaining.");
+                String msg = template.replace("%time%", MessageUtil.formatTime(data.getPvpDebtSeconds()));
                 MessageUtil.send(player, msg);
             }
             return;
@@ -105,14 +97,12 @@ public class PvPCommand implements TabExecutor {
         MessageUtil.send(player, "&7Total playtime: &f" + MessageUtil.formatTime(data.getTotalPlaytimeSeconds()));
     }
 
-    /* ---- Tab completion ---- */
-
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
             return Stream.of("on", "off", "status")
                     .filter(s -> s.startsWith(args[0].toLowerCase()))
-                    .collect(Collectors.toList());
+                    .toList();
         }
         return Collections.emptyList();
     }

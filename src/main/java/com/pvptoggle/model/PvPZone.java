@@ -3,9 +3,7 @@ package com.pvptoggle.model;
 import org.bukkit.Location;
 import org.bukkit.World;
 
-/**
- * An axis-aligned bounding box in a specific world that forces PvP for anyone inside.
- */
+// AABB region in a world that forces PvP for everyone inside.
 public class PvPZone {
 
     private final String name;
@@ -17,18 +15,8 @@ public class PvPZone {
     private final int y2;
     private final int z2;
 
-    /**
-     * Holds two corner coordinates for constructing a {@link PvPZone}.
-     */
     public record Corners(int ax, int ay, int az, int bx, int by, int bz) {}
 
-    /**
-     * Creates a new PvP zone defined by two opposite corners.
-     *
-     * @param name      display name of the zone
-     * @param worldName the world this zone exists in
-     * @param corners   a {@link Corners} record holding both corner coordinates
-     */
     public PvPZone(String name, String worldName, Corners corners) {
         this.name = name;
         this.worldName = worldName;
@@ -40,9 +28,7 @@ public class PvPZone {
         this.z2 = Math.max(corners.az(), corners.bz());
     }
 
-    /**
-     * @return true if the given location falls inside (or on the boundary of) this zone.
-     */
+    /** Checks whether the given location is within this zone. */
     public boolean contains(Location location) {
         if (location == null) return false;
         World world = location.getWorld();
@@ -55,8 +41,6 @@ public class PvPZone {
             && y >= y1 && y <= y2
             && z >= z1 && z <= z2;
     }
-
-    /* ---- Getters ---- */
 
     public String getName()      { return name; }
     public String getWorldName() { return worldName; }

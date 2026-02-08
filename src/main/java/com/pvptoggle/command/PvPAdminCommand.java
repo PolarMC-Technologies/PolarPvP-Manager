@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -23,30 +22,19 @@ import com.pvptoggle.model.PlayerData;
 import com.pvptoggle.model.PvPZone;
 import com.pvptoggle.util.MessageUtil;
 
-/**
- * <pre>
- * /pvpadmin wand                          — get the zone-selection wand
- * /pvpadmin zone create &lt;name&gt;           — create zone from selection
- * /pvpadmin zone delete &lt;name&gt;           — delete a zone
- * /pvpadmin zone list                     — list all zones
- * /pvpadmin zone info   &lt;name&gt;           — show zone details
- * /pvpadmin player &lt;name&gt; info           — show player data
- * /pvpadmin player &lt;name&gt; reset          — reset player data
- * /pvpadmin player &lt;name&gt; setdebt &lt;sec&gt; — set PvP debt
- * /pvpadmin reload                        — reload config
- * </pre>
- */
+// /pvpadmin wand | zone create/delete/list/info | player <name> info/reset/setdebt | reload
 public class PvPAdminCommand implements TabExecutor {
+
+    private static final String CMD_PLAYER = "player";
+    private static final String CMD_DELETE = "delete";
+    private static final String CMD_ZONE = "zone";
+    private static final String PLAYERS_ONLY = "&cThis command can only be used by players.";
 
     private final PvPTogglePlugin plugin;
 
     public PvPAdminCommand(PvPTogglePlugin plugin) {
         this.plugin = plugin;
     }
-
-    /* ================================================================
-     *  Command dispatch
-     * ================================================================ */
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -56,29 +44,25 @@ public class PvPAdminCommand implements TabExecutor {
         }
 
         switch (args[0].toLowerCase()) {
-            case "wand"   -> handleWand(sender);
-            case "zone"   -> handleZone(sender, args);
-            case "player" -> handlePlayer(sender, args);
-            case "reload" -> handleReload(sender);
-            default       -> sendHelp(sender);
+            case "wand"     -> handleWand(sender);
+            case CMD_ZONE   -> handleZone(sender, args);
+            case CMD_PLAYER -> handlePlayer(sender, args);
+            case "reload"   -> handleReload(sender);
+            default         -> { return false; }
         }
         return true;
     }
 
-    /* ================================================================
-     *  /pvpadmin wand
-     * ================================================================ */
-
     private void handleWand(CommandSender sender) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("This command can only be used by players.");
+            MessageUtil.send(sender, PLAYERS_ONLY);
             return;
         }
 
         Material wandMat;
         try {
-            wandMat = Material.valueOf(
-                    plugin.getConfig().getString("zone-wand-material", "BLAZE_ROD").toUpperCase());
+            String matConfig = plugin.getConfig().getString("zone-wand-material");
+            wandMat = Material.valueOf((matConfig != null ? matConfig : "BLAZE_ROD").toUpperCase());
         } catch (IllegalArgumentException e) {
             wandMat = Material.BLAZE_ROD;
         }
@@ -97,10 +81,6 @@ public class PvPAdminCommand implements TabExecutor {
         MessageUtil.send(player, "&eYou received the &6PvP Zone Selector &ewand!");
     }
 
-    /* ================================================================
-     *  /pvpadmin zone ...
-     * ================================================================ */
-
     private void handleZone(CommandSender sender, String[] args) {
         if (args.length < 2) {
             MessageUtil.send(sender, "&cUsage: /pvpadmin zone <create|delete|list|info> [name]");
@@ -108,10 +88,10 @@ public class PvPAdminCommand implements TabExecutor {
         }
 
         switch (args[1].toLowerCase()) {
-            case "create" -> zoneCreate(sender, args);
-            case "delete" -> zoneDelete(sender, args);
-            case "list"   -> zoneList(sender);
-            case "info"   -> zoneInfo(sender, args);
+            case "create"    -> zoneCreate(sender, args);
+            case CMD_DELETE  -> zoneDelete(sender, args);
+            case "list"      -> zoneList(sender);
+            case "info"      -> zoneInfo(sender, args);
             default -> MessageUtil.send(sender, "&cUsage: /pvpadmin zone <create|delete|list|info> [name]");
         }
     }
@@ -122,7 +102,7 @@ public class PvPAdminCommand implements TabExecutor {
             return;
         }
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("This command can only be used by players.");
+            MessageUtil.send(sender, PLAYERS_ONLY);
             return;
         }
         String name = args[2];
@@ -178,10 +158,6 @@ public class PvPAdminCommand implements TabExecutor {
         MessageUtil.send(sender, "&7Corner 2: &f(" + z.getX2() + ", " + z.getY2() + ", " + z.getZ2() + ")");
     }
 
-    /* ================================================================
-     *  /pvpadmin player ...
-     * ================================================================ */
-
     @SuppressWarnings("deprecation")
     private void handlePlayer(CommandSender sender, String[] args) {
         if (args.length < 3) {
@@ -230,18 +206,10 @@ public class PvPAdminCommand implements TabExecutor {
         }
     }
 
-    /* ================================================================
-     *  /pvpadmin reload
-     * ================================================================ */
-
     private void handleReload(CommandSender sender) {
         plugin.reloadConfig();
         MessageUtil.send(sender, "&aConfiguration reloaded!");
     }
-
-    /* ================================================================
-     *  Help
-     * ================================================================ */
 
     private void sendHelp(CommandSender sender) {
         MessageUtil.send(sender, "&6&l══════ PvPToggle Admin ══════");
@@ -256,33 +224,33 @@ public class PvPAdminCommand implements TabExecutor {
         MessageUtil.send(sender, "&e/pvpadmin reload &7— reload config");
     }
 
-    /* ================================================================
-     *  Tab completion
-     * ================================================================ */
-
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
 
-        if (args.length == 1) {
-            completions.addAll(Arrays.asList("wand", "zone", "player", "reload"));
-        } else if (args.length == 2) {
-            switch (args[0].toLowerCase()) {
-                case "zone"   -> completions.addAll(Arrays.asList("create", "delete", "list", "info"));
-                case "player" -> Bukkit.getOnlinePlayers().forEach(p -> completions.add(p.getName()));
+        switch (args.length) {
+            case 1 -> completions.addAll(Arrays.asList("wand", CMD_ZONE, CMD_PLAYER, "reload"));
+            case 2 -> {
+                if (args[0].equalsIgnoreCase(CMD_ZONE)) {
+                    completions.addAll(Arrays.asList("create", CMD_DELETE, "list", "info"));
+                } else if (args[0].equalsIgnoreCase(CMD_PLAYER)) {
+                    Bukkit.getOnlinePlayers().forEach(p -> completions.add(p.getName()));
+                }
             }
-        } else if (args.length == 3) {
-            if (args[0].equalsIgnoreCase("zone")
-                    && (args[1].equalsIgnoreCase("delete") || args[1].equalsIgnoreCase("info"))) {
-                completions.addAll(plugin.getZoneManager().getZoneNames());
-            } else if (args[0].equalsIgnoreCase("player")) {
-                completions.addAll(Arrays.asList("info", "reset", "setdebt"));
+            case 3 -> {
+                if (args[0].equalsIgnoreCase(CMD_ZONE)
+                        && (args[1].equalsIgnoreCase(CMD_DELETE) || args[1].equalsIgnoreCase("info"))) {
+                    completions.addAll(plugin.getZoneManager().getZoneNames());
+                } else if (args[0].equalsIgnoreCase(CMD_PLAYER)) {
+                    completions.addAll(Arrays.asList("info", "reset", "setdebt"));
+                }
             }
+            default -> { /* no completions */ }
         }
 
         String last = args[args.length - 1].toLowerCase();
         return completions.stream()
                 .filter(s -> s.toLowerCase().startsWith(last))
-                .collect(Collectors.toList());
+                .toList();
     }
 }

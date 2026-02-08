@@ -11,19 +11,12 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import com.pvptoggle.PvPTogglePlugin;
 import com.pvptoggle.util.MessageUtil;
 
-/**
- * Two responsibilities:
- * <ol>
- *   <li><b>Wand clicks</b> — left/right clicking a block with the PvP Zone
- *       Selector sets position 1 / position 2 for the zone selection.</li>
- *   <li><b>Zone entry/exit</b> — notifies players when they walk into or out
- *       of a forced-PvP zone.</li>
- * </ol>
- */
+// Wand click selection (pos1/pos2) and zone enter/exit messages.
 public class ZoneListener implements Listener {
 
     private final PvPTogglePlugin plugin;
@@ -31,10 +24,6 @@ public class ZoneListener implements Listener {
     public ZoneListener(PvPTogglePlugin plugin) {
         this.plugin = plugin;
     }
-
-    /* ================================================================
-     *  Wand selection
-     * ================================================================ */
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
@@ -64,10 +53,6 @@ public class ZoneListener implements Listener {
         }
     }
 
-    /* ================================================================
-     *  Zone entry / exit notifications
-     * ================================================================ */
-
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Location to = event.getTo();
@@ -93,20 +78,19 @@ public class ZoneListener implements Listener {
         }
     }
 
-    /* ================================================================
-     *  Helpers
-     * ================================================================ */
-
     private boolean isZoneWand(ItemStack item) {
         if (item == null || item.getType() == Material.AIR) return false;
         try {
-            String matName = plugin.getConfig().getString("zone-wand-material", "BLAZE_ROD");
+            String matName = plugin.getConfig().getString("zone-wand-material");
+            if (matName == null) matName = "BLAZE_ROD";
             if (item.getType() != Material.valueOf(matName.toUpperCase())) return false;
         } catch (IllegalArgumentException e) {
             // Bad material in config — fall back to BLAZE_ROD
             if (item.getType() != Material.BLAZE_ROD) return false;
         }
-        if (!item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) return false;
-        return item.getItemMeta().getDisplayName().equals(ChatColor.YELLOW + "PvP Zone Selector");
+        if (!item.hasItemMeta()) return false;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasDisplayName()) return false;
+        return meta.getDisplayName().equals(ChatColor.YELLOW + "PvP Zone Selector");
     }
 }

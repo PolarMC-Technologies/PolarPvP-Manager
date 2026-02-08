@@ -1,148 +1,70 @@
-# ⚔️ PolarPvP-Manager
+# PolarPvP-Manager
 
-A lightweight **PvP toggle plugin** for Minecraft servers with **forced PvP zones** and a **playtime-based forced PvP** system. Built for maximum compatibility.
+PvP toggle plugin for Minecraft servers (Bukkit/Spigot/Paper/Purpur). Adds player-controlled PvP toggling, admin-defined forced PvP zones, and a playtime-based forced PvP system.
 
-### Supported Servers
-| Platform | Status |
-|----------|--------|
-| Bukkit   | ✅ |
-| Spigot   | ✅ |
-| Paper    | ✅ |
-| Purpur   | ✅ |
-
-> Requires **Java 17+** and **Minecraft 1.20+**
-
----
+Requires Java 17+ and Minecraft 1.20+.
 
 ## Features
 
-### 🔀 PvP Toggle
-Players can freely turn PvP on and off. **Both** the attacker and the victim must have PvP enabled for damage to go through — otherwise the hit is silently blocked with a message.
+**PvP Toggle** - Players use `/pvp on` and `/pvp off`. Both the attacker and victim must have PvP enabled for damage to register. Projectiles (arrows, tridents, potions) and tamed animals are traced back to the owning player.
 
-### 🗺️ Forced PvP Zones
-Admins can define cuboid regions where PvP is **always forced on** for everyone, regardless of their toggle. Players get a notification when they enter/leave a zone.
+**Forced PvP Zones** - Admins define cuboid regions with a wand tool (Blaze Rod). Anyone inside a zone has PvP forced on regardless of their toggle. Players get notified on entry/exit.
 
-### ⏱️ Playtime → Forced PvP
-- For every **1 hour** of playtime, players receive **20 minutes of forced PvP** (configurable).
-- **Playtime always counts**, even when you're the only player online.
-- **Debt countdown only ticks with 2+ players online** — you can't burn it off solo.
-- **Debt stacks**: 2 hours played = 40 min debt, 3 hours = 60 min, etc.
-- **Persists through logout** — players can't leave to dodge their debt.
-- Players see a live **action bar timer** while debt is active (shows "paused — solo" when alone).
-
-### 🛡️ Combat Tracing
-Damage from **projectiles** (arrows, tridents, splash potions) and **tamed animals** (wolves) is traced back to the owning player for PvP checks.
-
----
+**Playtime Debt** - Every hour of cumulative playtime adds 20 minutes of forced PvP (configurable). Playtime always ticks, but the debt countdown only runs with 2+ players online so you can't burn it off solo. Debt stacks and persists through logout.
 
 ## Commands
 
-### Player Commands
-| Command | Description | Permission |
-|---------|-------------|------------|
-| `/pvp on` | Enable your PvP | `pvptoggle.use` |
-| `/pvp off` | Disable your PvP (blocked while forced) | `pvptoggle.use` |
-| `/pvp status` | Show your PvP status, playtime & debt | `pvptoggle.use` |
+`/pvp on|off|status` - Toggle or check your PvP (permission: `pvptoggle.use`, default: everyone)
 
-### Admin Commands
-| Command | Description | Permission |
-|---------|-------------|------------|
-| `/pvpadmin wand` | Get the zone selection wand | `pvptoggle.admin` |
-| `/pvpadmin zone create <name>` | Create a forced PvP zone from selection | `pvptoggle.admin` |
-| `/pvpadmin zone delete <name>` | Delete a zone | `pvptoggle.admin` |
-| `/pvpadmin zone list` | List all zones | `pvptoggle.admin` |
-| `/pvpadmin zone info <name>` | Show zone details | `pvptoggle.admin` |
-| `/pvpadmin player <name> info` | Inspect player data | `pvptoggle.admin` |
-| `/pvpadmin player <name> reset` | Reset all data for a player | `pvptoggle.admin` |
-| `/pvpadmin player <name> setdebt <seconds>` | Manually set PvP debt | `pvptoggle.admin` |
-| `/pvpadmin reload` | Reload config.yml | `pvptoggle.admin` |
+`/pvpadmin wand` - Get the zone selection wand
+`/pvpadmin zone create|delete|list|info <name>` - Manage PvP zones
+`/pvpadmin player <name> info|reset|setdebt <seconds>` - Manage player data
+`/pvpadmin reload` - Reload config
 
----
+Admin commands need `pvptoggle.admin` (default: op). `pvptoggle.bypass` exempts from playtime debt (default: op).
 
-## Permissions
+## Setup
 
-| Permission | Description | Default |
-|------------|-------------|---------|
-| `pvptoggle.use` | Use `/pvp` command | Everyone |
-| `pvptoggle.admin` | Use `/pvpadmin` command | OP |
-| `pvptoggle.bypass` | Exempt from playtime forced PvP | OP |
+1. Drop the jar into `plugins/`
+2. Restart the server
+3. Edit `plugins/PolarPvP-Manager/config.yml`
+4. `/pvpadmin reload`
 
----
+## Creating Zones
 
-## Creating a Forced PvP Zone
+1. `/pvpadmin wand` for the selector (Blaze Rod)
+2. Left click a block = pos1, right click = pos2
+3. `/pvpadmin zone create <name>`
 
-1. Run `/pvpadmin wand` to get the **PvP Zone Selector** (Blaze Rod).
-2. **Left click** a block to set position 1.
-3. **Right click** a block to set position 2.
-4. Run `/pvpadmin zone create <name>` to create the zone.
+Both positions need to be in the same world.
 
-Both positions must be in the same world. The zone is a cuboid between the two corners.
+## Config
 
----
+See `config.yml` for all options. The important ones:
 
-## Configuration
+- `default-pvp-state` - New players start with PvP on/off (default: false)
+- `playtime.hours-per-cycle` - Hours per forced PvP cycle (default: 1)
+- `playtime.forced-minutes` - Minutes of forced PvP per cycle (default: 20)
+- `zone-wand-material` - Wand material (default: BLAZE_ROD)
+- `save-interval` - Auto-save interval in minutes (default: 5)
 
-All values are in `config.yml` — see inline comments:
+All messages support `&` color codes.
 
-```yaml
-# Default PvP state for new players
-default-pvp-state: false
+## Data Files
 
-# All messages support & color codes
-messages:
-  pvp-enabled: "&a&l⚔ PvP has been enabled!"
-  pvp-disabled: "&c⚔ PvP has been disabled."
-  pvp-blocked-attacker: "&cYou have PvP disabled! Use &e/pvp on &cto enable it."
-  pvp-blocked-victim: "&cThat player has PvP disabled!"
-  pvp-forced-zone: "&c&lYou are in a forced PvP zone!"
-  pvp-forced-playtime: "&c&lPvP is forced due to playtime! &f%time% &cremaining."
+- `playerdata.yml` - PvP toggle state, playtime, processed cycles, debt per player
+- `zones.yml` - Zone definitions (name, world, corners)
 
-# Playtime cycle settings
-playtime:
-  hours-per-cycle: 1      # Hours of playtime before forced PvP triggers
-  forced-minutes: 20      # Minutes of forced PvP per cycle
+Auto-saved every 5 minutes, on every player quit, and on shutdown.
 
-# Zone selection wand material
-zone-wand-material: BLAZE_ROD
+## Building
 
-# Auto-save interval in minutes
-save-interval: 5
 ```
-
----
-
-## Data Storage
-
-| File | Contents |
-|------|----------|
-| `playerdata.yml` | Per-player PvP toggle, total playtime, processed cycles, PvP debt |
-| `zones.yml` | All defined forced PvP zones with corners and world |
-
-Both files are auto-saved periodically (default: every 5 minutes) and on every player quit.
-
----
-
-## Building from Source
-
-```bash
-# Requires Java 17+ and Maven
 mvn clean package
 ```
 
-The compiled JAR will be at `target/PolarPvP-Manager-1.0.0.jar`.
-
----
-
-## Installation
-
-1. Build the plugin or download the JAR from releases.
-2. Drop `PolarPvP-Manager-1.0.0.jar` into your server's `plugins/` folder.
-3. Restart (or reload) the server.
-4. Edit `plugins/PolarPvP-Manager/config.yml` to your liking.
-5. Run `/pvpadmin reload` to apply changes.
-
----
+Output: `target/PolarPvP-Manager-1.0.0.jar`
 
 ## License
 
-See [LICENSE](LICENSE) for details.
+[LICENSE](LICENSE)

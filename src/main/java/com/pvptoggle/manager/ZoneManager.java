@@ -1,20 +1,25 @@
 package com.pvptoggle.manager;
 
-import com.pvptoggle.PvPTogglePlugin;
-import com.pvptoggle.model.PvPZone;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.logging.Level;
+
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.logging.Level;
+import com.pvptoggle.PvPTogglePlugin;
+import com.pvptoggle.model.PvPZone;
 
-/**
- * Manages forced-PvP zones (cuboid regions) and per-player corner selections.
- */
+// Zone CRUD, wand selection state, and zones.yml persistence.
 public class ZoneManager {
 
     private final PvPTogglePlugin plugin;
@@ -25,11 +30,6 @@ public class ZoneManager {
         this.plugin = plugin;
     }
 
-    /* ================================================================
-     *  Selection helpers  (used by the zone-wand listener)
-     * ================================================================ */
-
-    /** Set position 1 (index 0) or position 2 (index 1). */
     public void setPosition(UUID playerUUID, int index, Location location) {
         selections.computeIfAbsent(playerUUID, k -> new Location[2])[index] = location.clone();
     }
@@ -38,14 +38,7 @@ public class ZoneManager {
         return selections.get(playerUUID);
     }
 
-    /* ================================================================
-     *  Zone CRUD
-     * ================================================================ */
-
-    /**
-     * Create a zone from the player's current selection.
-     * @return true on success, false if the selection is incomplete or cross-world.
-     */
+    /** Creates a zone from the player's current wand selection. Returns false if incomplete. */
     public boolean createZone(String name, UUID playerUUID) {
         Location[] sel = selections.get(playerUUID);
         if (sel == null || sel[0] == null || sel[1] == null) return false;
@@ -83,11 +76,6 @@ public class ZoneManager {
         return Collections.unmodifiableSet(zones.keySet());
     }
 
-    /* ================================================================
-     *  Spatial query
-     * ================================================================ */
-
-    /** @return true if the location is inside any forced-PvP zone. */
     public boolean isInForcedPvPZone(Location location) {
         if (location == null) return false;
         for (PvPZone zone : zones.values()) {
@@ -96,9 +84,7 @@ public class ZoneManager {
         return false;
     }
 
-    /* ================================================================
-     *  Persistence  (zones.yml)
-     * ================================================================ */
+    // ---- zones.yml I/O ----
 
     public void loadZones() {
         File file = new File(plugin.getDataFolder(), "zones.yml");

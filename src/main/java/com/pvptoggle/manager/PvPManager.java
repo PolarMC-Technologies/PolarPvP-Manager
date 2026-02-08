@@ -15,10 +15,7 @@ import org.bukkit.entity.Player;
 import com.pvptoggle.PvPTogglePlugin;
 import com.pvptoggle.model.PlayerData;
 
-/**
- * Owns all per-player data, resolves the effective PvP state, and handles
- * persistence to {@code playerdata.yml}.
- */
+// Player data + effective PvP state resolution + playerdata.yml persistence
 public class PvPManager {
 
     private final PvPTogglePlugin plugin;
@@ -28,11 +25,7 @@ public class PvPManager {
         this.plugin = plugin;
     }
 
-    /* ================================================================
-     *  Player data access
-     * ================================================================ */
-
-    /** Get (or lazily create) the data object for a player. */
+    /** Returns the data for this player, creating defaults if needed. */
     public PlayerData getPlayerData(UUID uuid) {
         return playerDataMap.computeIfAbsent(uuid, k -> {
             PlayerData data = new PlayerData();
@@ -53,13 +46,9 @@ public class PvPManager {
         return Collections.unmodifiableMap(playerDataMap);
     }
 
-    /* ================================================================
-     *  PvP state resolution
-     * ================================================================ */
-
     /**
-     * True if the player's PvP is effectively enabled right now — either by
-     * their own toggle, a forced zone, or playtime debt.
+     * Whether PvP is effectively on for this player right now,
+     * considering their toggle, zones, and playtime debt.
      */
     public boolean isEffectivePvPEnabled(Player player) {
         PlayerData data = getPlayerData(player.getUniqueId());
@@ -74,18 +63,14 @@ public class PvPManager {
         return data.getPvpDebtSeconds() > 0 && !player.hasPermission("pvptoggle.bypass");
     }
 
-    /**
-     * True if the player currently cannot turn PvP off (zone or debt).
-     */
+    /** True if player can't toggle PvP off right now (zone or debt). */
     public boolean isForcedPvP(Player player) {
         if (plugin.getZoneManager().isInForcedPvPZone(player.getLocation())) return true;
         PlayerData data = getPlayerData(player.getUniqueId());
         return data.getPvpDebtSeconds() > 0 && !player.hasPermission("pvptoggle.bypass");
     }
 
-    /* ================================================================
-     *  Persistence  (playerdata.yml)
-     * ================================================================ */
+    // ---- playerdata.yml I/O ----
 
     public void loadData() {
         File file = new File(plugin.getDataFolder(), "playerdata.yml");

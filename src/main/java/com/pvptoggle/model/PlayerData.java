@@ -1,14 +1,12 @@
 package com.pvptoggle.model;
 
-/**
- * Holds all persistent per-player data: PvP toggle, playtime, and forced-PvP debt.
- */
+// Per-player state that gets saved to playerdata.yml
 public class PlayerData {
 
     private boolean pvpEnabled;
     private long totalPlaytimeSeconds;
-    private int processedCycles;   // how many hour-milestones have already been turned into debt
-    private long pvpDebtSeconds;   // remaining forced-PvP time in seconds
+    private int processedCycles;   // hour milestones already converted to debt
+    private long pvpDebtSeconds;
 
     public PlayerData() {
         this.pvpEnabled = false;
@@ -16,8 +14,6 @@ public class PlayerData {
         this.processedCycles = 0;
         this.pvpDebtSeconds = 0;
     }
-
-    /* ---- PvP toggle ---- */
 
     public boolean isPvpEnabled() {
         return pvpEnabled;
@@ -27,8 +23,6 @@ public class PlayerData {
         this.pvpEnabled = pvpEnabled;
     }
 
-    /* ---- Playtime ---- */
-
     public long getTotalPlaytimeSeconds() {
         return totalPlaytimeSeconds;
     }
@@ -37,8 +31,6 @@ public class PlayerData {
         this.totalPlaytimeSeconds = totalPlaytimeSeconds;
     }
 
-    /* ---- Processed cycles (hours that already generated debt) ---- */
-
     public int getProcessedCycles() {
         return processedCycles;
     }
@@ -46,8 +38,6 @@ public class PlayerData {
     public void setProcessedCycles(int processedCycles) {
         this.processedCycles = processedCycles;
     }
-
-    /* ---- PvP debt ---- */
 
     public long getPvpDebtSeconds() {
         return pvpDebtSeconds;

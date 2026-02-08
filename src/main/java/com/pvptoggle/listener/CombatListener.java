@@ -12,11 +12,8 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import com.pvptoggle.PvPTogglePlugin;
 import com.pvptoggle.util.MessageUtil;
 
-/**
- * Cancels player-vs-player damage when either side does not have PvP enabled.
- * Traces projectiles (arrows, tridents, potions, etc.) and tamed animals back
- * to their owner for the PvP check.
- */
+// Blocks PvP damage when either player has it off. Traces projectiles
+// and tamed mobs back to their owner for the check.
 public class CombatListener implements Listener {
 
     private final PvPTogglePlugin plugin;
@@ -52,10 +49,6 @@ public class CombatListener implements Listener {
         }
     }
 
-    /**
-     * Resolve the root player behind a damage source.
-     * Handles direct hits, projectiles, and tamed-animal attacks.
-     */
     private Player resolvePlayerAttacker(Entity damager) {
         if (damager instanceof Player p) {
             return p;
