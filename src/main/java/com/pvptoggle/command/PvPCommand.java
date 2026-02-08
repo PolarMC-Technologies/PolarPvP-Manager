@@ -39,6 +39,25 @@ public class PvPCommand implements TabExecutor {
             case "on"     -> toggleOn(player);
             case "off"    -> toggleOff(player);
             case "status" -> showStatus(player);
+            case "testdebt" -> {
+                if (!player.isOp() && !player.hasPermission("pvptoggle.admin")) {
+                    MessageUtil.send(player, "&b[PolarPvP-Manager] &cYou don't have permission to use this command.");
+                    return true;
+                }
+                if (args.length < 2) {
+                    MessageUtil.send(player, "&b[PolarPvP-Manager] &7Usage: /plpvp testdebt <seconds>");
+                    return true;
+                }
+                try {
+                    long seconds = Long.parseLong(args[1]);
+                    PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
+                    data.setPvpDebtSeconds(seconds);
+                    MessageUtil.send(player, "&b[PolarPvP-Manager] &aSet your PvP debt to &f" + MessageUtil.formatTime(seconds));
+                } catch (NumberFormatException e) {
+                    MessageUtil.send(player, "&b[PolarPvP-Manager] &cInvalid number: " + args[1]);
+                }
+                return true;
+            }
             default       -> { return false; }
         }
         return true;
@@ -115,9 +134,9 @@ public class PvPCommand implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return Stream.of("on", "off", "status")
-                    .filter(s -> s.startsWith(args[0].toLowerCase()))
-                    .toList();
+            return Stream.of("on", "off", "status", "testdebt")
+                .filter(s -> s.startsWith(args[0].toLowerCase()))
+                .toList();
         }
         return Collections.emptyList();
     }

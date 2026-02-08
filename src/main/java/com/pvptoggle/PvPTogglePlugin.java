@@ -47,13 +47,14 @@ public class PvPTogglePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ZoneListener(this), this);
 
         // commands
+
         PvPCommand pvpCmd = new PvPCommand(this);
-        Objects.requireNonNull(getCommand("pvp")).setExecutor(pvpCmd);
-        Objects.requireNonNull(getCommand("pvp")).setTabCompleter(pvpCmd);
+        Objects.requireNonNull(getCommand("plpvp")).setExecutor(pvpCmd);
+        Objects.requireNonNull(getCommand("plpvp")).setTabCompleter(pvpCmd);
 
         PvPAdminCommand adminCmd = new PvPAdminCommand(this);
-        Objects.requireNonNull(getCommand("pvpadmin")).setExecutor(adminCmd);
-        Objects.requireNonNull(getCommand("pvpadmin")).setTabCompleter(adminCmd);
+        Objects.requireNonNull(getCommand("plpvpadmin")).setExecutor(adminCmd);
+        Objects.requireNonNull(getCommand("plpvpadmin")).setTabCompleter(adminCmd);
 
         playtimeManager.startTracking();
 
