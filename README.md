@@ -57,4 +57,5 @@ Build:
 Run `mvn clean package`.
 Jar will be in `target/PolarPvP-Manager-1.0.0.jar`.
 
-License: See LICENSE.
+License: 
+GPL3
