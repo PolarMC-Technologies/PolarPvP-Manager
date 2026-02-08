@@ -14,14 +14,16 @@ Requires Java 17+ and Minecraft 1.20+.
 
 ## Commands
 
-`/pvp on|off|status` - Toggle or check your PvP (permission: `pvptoggle.use`, default: everyone)
+| Command | Description | Permission |
+|---------|-------------|------------|
+| `/pvp on\|off\|status` | Toggle or check your PvP | `pvptoggle.use` (everyone) |
+| `/pvpadmin wand` | Get the zone selection wand | `pvptoggle.admin` (op) |
+| `/pvpadmin zone create\|delete\|list\|info <name>` | Manage PvP zones | `pvptoggle.admin` |
+| `/pvpadmin player <name> info\|reset\|setdebt <sec>` | Manage player data | `pvptoggle.admin` |
+| `/pvpadmin simtime <seconds>` | Add fake playtime for testing | `pvptoggle.admin` |
+| `/pvpadmin reload` | Reload config | `pvptoggle.admin` |
 
-`/pvpadmin wand` - Get the zone selection wand
-`/pvpadmin zone create|delete|list|info <name>` - Manage PvP zones
-`/pvpadmin player <name> info|reset|setdebt <seconds>` - Manage player data
-`/pvpadmin reload` - Reload config
-
-Admin commands need `pvptoggle.admin` (default: op). `pvptoggle.bypass` exempts from playtime debt (default: op).
+`pvptoggle.bypass` exempts a player from playtime debt (default: op).
 
 ## Setup
 
@@ -47,8 +49,9 @@ See `config.yml` for all options. The important ones:
 - `playtime.forced-minutes` - Minutes of forced PvP per cycle (default: 20)
 - `zone-wand-material` - Wand material (default: BLAZE_ROD)
 - `save-interval` - Auto-save interval in minutes (default: 5)
+- `debug` - Print debug info to console (default: false)
 
-All messages support `&` color codes.
+All messages are in `config.yml` and support `&` color codes.
 
 ## Data Files
 

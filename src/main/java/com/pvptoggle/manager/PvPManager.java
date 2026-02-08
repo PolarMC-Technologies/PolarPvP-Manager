@@ -53,14 +53,16 @@ public class PvPManager {
     public boolean isEffectivePvPEnabled(Player player) {
         PlayerData data = getPlayerData(player.getUniqueId());
 
-        // Manual toggle
-        if (data.isPvpEnabled()) return true;
+        boolean toggle = data.isPvpEnabled();
+        boolean inZone = plugin.getZoneManager().isInForcedPvPZone(player.getLocation());
+        boolean hasDebt = data.getPvpDebtSeconds() > 0 && !player.hasPermission("pvptoggle.bypass");
 
-        // Inside a forced-PvP zone (no bypass)
-        if (plugin.getZoneManager().isInForcedPvPZone(player.getLocation())) return true;
+        if (plugin.getConfig().getBoolean("debug", false)) {
+            plugin.getLogger().info("[DEBUG] PvP check for " + player.getName()
+                    + ": toggle=" + toggle + ", inZone=" + inZone + ", hasDebt=" + hasDebt);
+        }
 
-        // Playtime debt (bypassable by permission)
-        return data.getPvpDebtSeconds() > 0 && !player.hasPermission("pvptoggle.bypass");
+        return toggle || inZone || hasDebt;
     }
 
     /** True if player can't toggle PvP off right now (zone or debt). */

@@ -48,6 +48,7 @@ public class PvPAdminCommand implements TabExecutor {
             case CMD_ZONE   -> handleZone(sender, args);
             case CMD_PLAYER -> handlePlayer(sender, args);
             case "reload"   -> handleReload(sender);
+            case "simtime"  -> handleSimtime(sender, args);
             default         -> { return false; }
         }
         return true;
@@ -206,6 +207,29 @@ public class PvPAdminCommand implements TabExecutor {
         }
     }
 
+    // temp test command - adds fake playtime so you don't have to wait an hour
+    private void handleSimtime(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            MessageUtil.send(sender, PLAYERS_ONLY);
+            return;
+        }
+        if (args.length < 2) {
+            MessageUtil.send(sender, "&cUsage: /pvpadmin simtime <seconds>");
+            return;
+        }
+        try {
+            long seconds = Long.parseLong(args[1]);
+            PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
+            data.setTotalPlaytimeSeconds(data.getTotalPlaytimeSeconds() + seconds);
+            MessageUtil.send(player, "&aAdded &f" + MessageUtil.formatTime(seconds)
+                    + " &ato your playtime. Total: &f"
+                    + MessageUtil.formatTime(data.getTotalPlaytimeSeconds()));
+            MessageUtil.send(player, "&7(Debt will trigger on the next tick if a cycle threshold is crossed)");
+        } catch (NumberFormatException e) {
+            MessageUtil.send(sender, "&cInvalid number: &f" + args[1]);
+        }
+    }
+
     private void handleReload(CommandSender sender) {
         plugin.reloadConfig();
         MessageUtil.send(sender, "&aConfiguration reloaded!");
@@ -222,6 +246,7 @@ public class PvPAdminCommand implements TabExecutor {
         MessageUtil.send(sender, "&e/pvpadmin player <name> reset &7— reset player data");
         MessageUtil.send(sender, "&e/pvpadmin player <name> setdebt <sec> &7— set PvP debt");
         MessageUtil.send(sender, "&e/pvpadmin reload &7— reload config");
+        MessageUtil.send(sender, "&e/pvpadmin simtime <seconds> &7— add fake playtime (testing)");
     }
 
     @Override
@@ -229,7 +254,7 @@ public class PvPAdminCommand implements TabExecutor {
         List<String> completions = new ArrayList<>();
 
         switch (args.length) {
-            case 1 -> completions.addAll(Arrays.asList("wand", CMD_ZONE, CMD_PLAYER, "reload"));
+            case 1 -> completions.addAll(Arrays.asList("wand", CMD_ZONE, CMD_PLAYER, "reload", "simtime"));
             case 2 -> {
                 if (args[0].equalsIgnoreCase(CMD_ZONE)) {
                     completions.addAll(Arrays.asList("create", CMD_DELETE, "list", "info"));

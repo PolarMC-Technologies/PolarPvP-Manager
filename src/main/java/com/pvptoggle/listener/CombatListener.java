@@ -27,16 +27,25 @@ public class CombatListener implements Listener {
         if (!(event.getEntity() instanceof Player victim)) return;
 
         Player attacker = resolvePlayerAttacker(event.getDamager());
-        if (attacker == null) return;           // not player-caused damage
-        if (attacker.equals(victim)) return;    // self-damage (ender pearls, etc.)
+        if (attacker == null) return;
+        if (attacker.equals(victim)) return;
+
+        if (plugin.getConfig().getBoolean("debug", false)) {
+            plugin.getLogger().info("[DEBUG] Combat: " + attacker.getName() + " -> " + victim.getName()
+                    + " | damager type: " + event.getDamager().getType());
+        }
 
         boolean attackerPvP = plugin.getPvPManager().isEffectivePvPEnabled(attacker);
         boolean victimPvP   = plugin.getPvPManager().isEffectivePvPEnabled(victim);
 
+        if (plugin.getConfig().getBoolean("debug", false)) {
+            plugin.getLogger().info("[DEBUG] Result: attackerPvP=" + attackerPvP + ", victimPvP=" + victimPvP);
+        }
+
         if (!attackerPvP) {
             MessageUtil.send(attacker,
                     plugin.getConfig().getString("messages.pvp-blocked-attacker",
-                            "&cYou have PvP disabled! Use /pvp on to enable it."));
+                            "&c&l\u2718 &cYour PvP is off! &7Use &a/pvp on &7to fight."));
             event.setCancelled(true);
             return;
         }
@@ -44,7 +53,7 @@ public class CombatListener implements Listener {
         if (!victimPvP) {
             MessageUtil.send(attacker,
                     plugin.getConfig().getString("messages.pvp-blocked-victim",
-                            "&cThat player has PvP disabled!"));
+                            "&c&l\u2718 &cThat player has PvP disabled!"));
             event.setCancelled(true);
         }
     }

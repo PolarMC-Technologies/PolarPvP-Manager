@@ -5,13 +5,16 @@ default-pvp-state: false
 
 # Messages (& color codes work)
 messages:
-  pvp-enabled: "&a&l⚔ PvP has been enabled!"
-  pvp-disabled: "&c⚔ PvP has been disabled."
-  pvp-blocked-attacker: "&cYou have PvP disabled! Use &e/pvp on &cto enable it."
-  pvp-blocked-victim: "&cThat player has PvP disabled!"
-  pvp-forced-zone: "&c&lYou are in a forced PvP zone! PvP cannot be disabled here."
-  pvp-forced-playtime: "&c&lPvP is forced due to playtime! &f%time% &cremaining."
-  no-permission: "&cYou don't have permission to do that!"
+  pvp-enabled: "&a&l⚔ PvP enabled! &7You can now deal and receive player damage."
+  pvp-disabled: "&c&l⚔ PvP disabled. &7You are now protected from players."
+  pvp-blocked-attacker: "&c&l✘ &cYour PvP is off! &7Use &a/pvp on &7to fight."
+  pvp-blocked-victim: "&c&l✘ &cThat player has PvP disabled!"
+  pvp-forced-zone: "&4&l⚠ &cYou're in a &4forced PvP zone&c! You can't disable PvP here."
+  pvp-forced-playtime: "&4&l⚠ &cForced PvP active! &f%time% &cremaining."
+  pvp-already-on: "&7Your PvP is already &aenabled&7."
+  pvp-already-off: "&7Your PvP is already &cdisabled&7."
+  pvp-already-forced: "&7PvP is already &cforced on &7for you right now."
+  no-permission: "&4&l✘ &cYou don't have permission to do that!"
 
 # Playtime settings
 playtime:
@@ -25,3 +28,6 @@ zone-wand-material: BLAZE_ROD
 
 # Auto-save interval (minutes)
 save-interval: 5
+
+# Print debug info to console (disable after testing)
+debug: false
