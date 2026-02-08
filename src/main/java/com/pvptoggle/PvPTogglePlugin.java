@@ -13,6 +13,7 @@ import com.pvptoggle.listener.ZoneListener;
 import com.pvptoggle.manager.PlaytimeManager;
 import com.pvptoggle.manager.PvPManager;
 import com.pvptoggle.manager.ZoneManager;
+import com.pvptoggle.util.UpdateChecker;
 
 public class PvPTogglePlugin extends JavaPlugin {
 
@@ -22,6 +23,17 @@ public class PvPTogglePlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // ASCII banner
+        String version = getDescription().getVersion();
+        getServer().getConsoleSender().sendMessage("");
+        getServer().getConsoleSender().sendMessage("§b ____       _            ____       ____");
+        getServer().getConsoleSender().sendMessage("§b|  _ \\ ___ | | __ _ _ __|  _ \\__   _|  _ \\");
+        getServer().getConsoleSender().sendMessage("§b| |_) / _ \\| |/ _` | '__| |_) \\ \\ / / |_) |");
+        getServer().getConsoleSender().sendMessage("§b|  __/ (_) | | (_| | |  |  __/ \\ V /|  __/");
+        getServer().getConsoleSender().sendMessage("§b|_|   \\___/|_|\\__,_|_|  |_|     \\_/ |_|");
+        getServer().getConsoleSender().sendMessage("§7  PolarPvP-Manager §fv" + version + " §7| §aBukkit/Spigot/Paper/Purpur");
+        getServer().getConsoleSender().sendMessage("");
+
         // Config
         saveDefaultConfig();
 
@@ -50,6 +62,11 @@ public class PvPTogglePlugin extends JavaPlugin {
 
         // Start the 1-second playtime / debt ticker + auto-save
         playtimeManager.startTracking();
+
+        // Update checker
+        UpdateChecker updateChecker = new UpdateChecker(this);
+        getServer().getPluginManager().registerEvents(updateChecker, this);
+        updateChecker.check();
 
         getLogger().log(Level.INFO, "PolarPvP-Manager v{0} enabled!", getDescription().getVersion());
     }
