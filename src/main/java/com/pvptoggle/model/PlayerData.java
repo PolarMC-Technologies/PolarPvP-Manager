@@ -4,7 +4,7 @@ public class PlayerData {
 
     private boolean pvpEnabled;
     private long totalPlaytimeSeconds;
-    private int processedCycles;   // hour milestones already converted to debt
+    private int processedCycles;   // how many cycles converted to debt
     private long pvpDebtSeconds;
 
     public PlayerData() {

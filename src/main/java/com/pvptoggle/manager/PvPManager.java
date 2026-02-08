@@ -24,20 +24,23 @@ public class PvPManager {
         this.plugin = plugin;
     }
 
-    public PlayerData getPlayerData(UUID uuid) {
-        return playerDataMap.computeIfAbsent(uuid, k -> {
-            PlayerData data = new PlayerData();
-            data.setPvpEnabled(plugin.getConfig().getBoolean("default-pvp-state", false));
-            return data;
+    // grab or make player data
+    public PlayerData getPlayerData(UUID id) {
+        return playerDataMap.computeIfAbsent(id, k -> {
+            PlayerData d = new PlayerData();
+            d.setPvpEnabled(plugin.getConfig().getBoolean("default-pvp-state", false));
+            return d;
         });
     }
 
-    public void resetPlayerData(UUID uuid) {
-        PlayerData data = new PlayerData();
-        data.setPvpEnabled(plugin.getConfig().getBoolean("default-pvp-state", false));
-        playerDataMap.put(uuid, data);
+    // reset everything for a player
+    public void resetPlayerData(UUID id) {
+        PlayerData d = new PlayerData();
+        d.setPvpEnabled(plugin.getConfig().getBoolean("default-pvp-state", false));
+        playerDataMap.put(id, d);
     }
 
+    // for admin commands
     public Map<UUID, PlayerData> getAllPlayerData() {
         return Collections.unmodifiableMap(playerDataMap);
     }
@@ -63,7 +66,7 @@ public class PvPManager {
         return data.getPvpDebtSeconds() > 0 && !player.hasPermission("pvptoggle.bypass");
     }
 
-    // ---- playerdata.yml I/O ----
+    // playerdata.yml i/o
 
     public void loadData() {
         File file = new File(plugin.getDataFolder(), "playerdata.yml");

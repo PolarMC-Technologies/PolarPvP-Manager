@@ -22,7 +22,7 @@ public class PlayerListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         PlayerData data = plugin.getPvPManager().getPlayerData(event.getPlayer().getUniqueId());
 
-        // remind about debt after a short delay
+        // If they have debt, remind them after login
         if (data.getPvpDebtSeconds() > 0 && !event.getPlayer().hasPermission("pvptoggle.bypass")) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 if (event.getPlayer().isOnline()) {

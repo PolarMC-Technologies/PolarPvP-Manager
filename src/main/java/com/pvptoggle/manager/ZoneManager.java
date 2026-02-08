@@ -29,12 +29,14 @@ public class ZoneManager {
         this.plugin = plugin;
     }
 
-    public void setPosition(UUID playerUUID, int index, Location location) {
-        selections.computeIfAbsent(playerUUID, k -> new Location[2])[index] = location.clone();
+    // set wand selection
+    public void setPosition(UUID playerId, int idx, Location loc) {
+        selections.computeIfAbsent(playerId, k -> new Location[2])[idx] = loc.clone();
     }
 
-    public Location[] getSelection(UUID playerUUID) {
-        return selections.get(playerUUID);
+    // get wand selection
+    public Location[] getSelection(UUID playerId) {
+        return selections.get(playerId);
     }
 
     public boolean createZone(String name, UUID playerUUID) {
@@ -81,7 +83,7 @@ public class ZoneManager {
         return false;
     }
 
-    // ---- zones.yml I/O ----
+    // zones.yml i/o
 
     public void loadZones() {
         File file = new File(plugin.getDataFolder(), "zones.yml");
