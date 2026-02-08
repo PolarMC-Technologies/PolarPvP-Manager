@@ -29,8 +29,12 @@ Permissions:
 Zones:
 Use `/pvpadmin wand` to select two blocks (left/right click), then `/pvpadmin zone create <name>`. Both blocks must be in the same world.
 
+
 Playtime Debt:
 Choose between two modes: "per_hour" (every X hours = Y minutes PvP) or "per_minute" (every X minutes played = Y minutes PvP). Debt only counts down if 2+ players are online. Logging out doesn't help.
+
+**PvP Debt Cap:**
+Players can only accumulate a limited amount of PvP debt (see `pvp-debt-cap` in config). If a player reaches this cap, PvP is automatically forced ON for them until they work off their debt. They will be notified in chat when this happens.
 
 Config:
 Everything is in `config.yml`. Main stuff:
@@ -39,6 +43,7 @@ Everything is in `config.yml`. Main stuff:
 - `playtime.hours-per-cycle`: Hours per cycle (for per_hour mode)
 - `playtime.minutes-per-cycle`: Minutes played per cycle (for per_minute mode)
 - `playtime.forced-minutes`: Minutes of forced PvP per cycle
+- `pvp-debt-cap`: Maximum PvP debt (in minutes) a player can accumulate before PvP is forced on
 - `zone-wand-material`: Wand item (default: BLAZE_ROD)
 - `save-interval`: Auto-save interval (minutes)
 - `debug`: Print debug info

@@ -27,6 +27,9 @@ playtime:
   # Minutes of forced PvP per cycle
   forced-minutes: 20
 
+# Maximum PvP debt (in minutes) a player can accumulate before PvP is forced on
+pvp-debt-cap: 60
+
 # Zone wand material (any valid Bukkit Material name)
 zone-wand-material: BLAZE_ROD
 
