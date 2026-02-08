@@ -1,0 +1,27 @@
+name: PolarPvP-Manager
+version: ${project.version}
+main: com.pvptoggle.PvPTogglePlugin
+api-version: '1.20'
+description: PvP toggle with forced zones and playtime-based forced PvP
+authors: [PolarPvP]
+
+commands:
+  pvp:
+    description: Toggle your PvP status
+    usage: /pvp <on|off|status>
+    permission: pvptoggle.use
+  pvpadmin:
+    description: PvP admin commands
+    usage: /pvpadmin <wand|zone|player|reload>
+    permission: pvptoggle.admin
+
+permissions:
+  pvptoggle.use:
+    description: Allows using /pvp command
+    default: true
+  pvptoggle.admin:
+    description: Allows using /pvpadmin command
+    default: op
+  pvptoggle.bypass:
+    description: Bypass forced PvP from playtime debt
+    default: op

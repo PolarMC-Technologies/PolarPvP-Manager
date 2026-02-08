@@ -1,0 +1,30 @@
+# ==============================
+#  PvPToggle Configuration
+# ==============================
+
+# Default PvP state for new players (true = PvP on by default)
+default-pvp-state: false
+
+# ---- Messages (supports & color codes) ----
+messages:
+  pvp-enabled: "&a&l⚔ PvP has been enabled!"
+  pvp-disabled: "&c⚔ PvP has been disabled."
+  pvp-blocked-attacker: "&cYou have PvP disabled! Use &e/pvp on &cto enable it."
+  pvp-blocked-victim: "&cThat player has PvP disabled!"
+  pvp-forced-zone: "&c&lYou are in a forced PvP zone! PvP cannot be disabled here."
+  pvp-forced-playtime: "&c&lPvP is forced due to playtime! &f%time% &cremaining."
+  no-permission: "&cYou don't have permission to do that!"
+
+# ---- Playtime Settings ----
+playtime:
+  # How many hours of playtime trigger a forced PvP period
+  hours-per-cycle: 1
+  # How many minutes of forced PvP per cycle
+  forced-minutes: 20
+
+# ---- Zone Wand ----
+# Material for the zone selection wand (any valid Bukkit Material name)
+zone-wand-material: BLAZE_ROD
+
+# ---- Auto-save interval in minutes ----
+save-interval: 5
