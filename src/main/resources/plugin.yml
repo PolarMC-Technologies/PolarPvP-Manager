@@ -6,13 +6,13 @@ description: PvP toggle with forced zones and playtime-based forced PvP
 authors: [PolarPvP]
 
 commands:
-  pvp:
+  plpvp:
     description: Toggle your PvP status
-    usage: /pvp <on|off|status>
+    usage: /plpvp <on|off|status>
     permission: pvptoggle.use
-  pvpadmin:
-    description: PvP admin commands
-    usage: /pvpadmin <wand|zone|player|reload>
+  plpvpadmin:
+    description: PLPvP admin commands
+    usage: /plpvpadmin <wand|zone|player|reload>
     permission: pvptoggle.admin
 
 permissions:

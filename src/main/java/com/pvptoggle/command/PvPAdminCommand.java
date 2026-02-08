@@ -22,7 +22,7 @@ import com.pvptoggle.model.PlayerData;
 import com.pvptoggle.model.PvPZone;
 import com.pvptoggle.util.MessageUtil;
 
-// /pvpadmin wand | zone create/delete/list/info | player <name> info/reset/setdebt | reload
+// /plpvpadmin wand | zone create/delete/list/info | player <name> info/reset/setdebt | reload
 public class PvPAdminCommand implements TabExecutor {
 
     private static final String PLAYERS_ONLY = "&cOnly players can use this.";
@@ -235,17 +235,17 @@ public class PvPAdminCommand implements TabExecutor {
     }
 
     private void sendHelp(CommandSender sender) {
-        MessageUtil.send(sender, "&6&l══════ PvPToggle Admin ══════");
-        MessageUtil.send(sender, "&e/pvpadmin wand &7— get zone selection wand");
-        MessageUtil.send(sender, "&e/pvpadmin zone create <name> &7— create a zone");
-        MessageUtil.send(sender, "&e/pvpadmin zone delete <name> &7— delete a zone");
-        MessageUtil.send(sender, "&e/pvpadmin zone list &7— list all zones");
-        MessageUtil.send(sender, "&e/pvpadmin zone info <name> &7— zone details");
-        MessageUtil.send(sender, "&e/pvpadmin player <name> info &7— player info");
-        MessageUtil.send(sender, "&e/pvpadmin player <name> reset &7— reset player data");
-        MessageUtil.send(sender, "&e/pvpadmin player <name> setdebt <sec> &7— set PvP debt");
-        MessageUtil.send(sender, "&e/pvpadmin reload &7— reload config");
-        MessageUtil.send(sender, "&e/pvpadmin simtime <seconds> &7— add fake playtime (testing)");
+        MessageUtil.send(sender, "&b[PolarPvP-Manager] &6&l══════ PvPToggle Admin ══════");
+        MessageUtil.send(sender, "&b[PolarPvP-Manager] &e/pvpadmin wand &7— get zone selection wand");
+        MessageUtil.send(sender, "&b[PolarPvP-Manager] &e/pvpadmin zone create <name> &7— create a zone");
+        MessageUtil.send(sender, "&b[PolarPvP-Manager] &e/pvpadmin zone delete <name> &7— delete a zone");
+        MessageUtil.send(sender, "&b[PolarPvP-Manager] &e/pvpadmin zone list &7— list all zones");
+        MessageUtil.send(sender, "&b[PolarPvP-Manager] &e/pvpadmin zone info <name> &7— zone details");
+        MessageUtil.send(sender, "&b[PolarPvP-Manager] &e/pvpadmin player <name> info &7— player info");
+        MessageUtil.send(sender, "&b[PolarPvP-Manager] &e/pvpadmin player <name> reset &7— reset player data");
+        MessageUtil.send(sender, "&b[PolarPvP-Manager] &e/pvpadmin player <name> setdebt <sec> &7— set PvP debt");
+        MessageUtil.send(sender, "&b[PolarPvP-Manager] &e/pvpadmin reload &7— reload config");
+        MessageUtil.send(sender, "&b[PolarPvP-Manager] &e/pvpadmin simtime <seconds> &7— add fake playtime (testing)");
     }
 
     @Override

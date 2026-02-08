@@ -1,67 +1,80 @@
 
 
-PolarPvP-Manager
+# PolarPvP-Manager
 
-Minecraft plugin for toggling PvP. Players can turn it on/off, admins can force it in zones or after enough playtime. Works on Bukkit/Spigot/Paper/Purpur. No fancy stuff.
-
-Setup:
-- Drop the jar in your `plugins/` folder
-- Start the server
-- Edit `config.yml` if you want
-- `/pvpadmin reload` reloads config
-
-Commands:
-- `/pvp on` / `/pvp off` / `/pvp status` — Toggle/check PvP
-- `/pvpadmin wand` — Get the zone wand
-- `/pvpadmin zone create <name>` — Make a zone
-- `/pvpadmin zone delete <name>` — Remove a zone
-- `/pvpadmin zone list` — List zones
-- `/pvpadmin zone info <name>` — Zone details
-- `/pvpadmin player <name> info|reset|setdebt <sec>` — Player stuff
-- `/pvpadmin simtime <seconds>` — Add fake playtime (testing)
-- `/pvpadmin reload` — Reload config
-
-Permissions:
-- `pvptoggle.use` — Everyone
-- `pvptoggle.admin` — OP/admin
-- `pvptoggle.bypass` — Skips playtime debt (OP by default)
-
-Zones:
-Use `/pvpadmin wand` to select two blocks (left/right click), then `/pvpadmin zone create <name>`. Both blocks must be in the same world.
+Simple Minecraft plugin for toggling PvP. Players can enable or disable PvP for themselves. Admins can force PvP in certain zones or after enough playtime. Compatible with Bukkit, Spigot, Paper, and Purpur.
 
 
-Playtime Debt:
-Choose between two modes: "per_hour" (every X hours = Y minutes PvP) or "per_minute" (every X minutes played = Y minutes PvP). Debt only counts down if 2+ players are online. Logging out doesn't help.
+## Setup
+- Place the jar in your `plugins/` folder
+- Start your server
+- Edit `config.yml` to customize settings
+- Use `/plpvpadmin reload` to reload config
 
-**PvP Debt Cap:**
-Players can only accumulate a limited amount of PvP debt (see `pvp-debt-cap` in config). If a player reaches this cap, PvP is automatically forced ON for them until they work off their debt. They will be notified in chat when this happens.
 
-Config:
-Everything is in `config.yml`. Main stuff:
-- `default-pvp-state`: PvP on/off for new players
+## Commands
+- `/plpvp on`, `/plpvp off`, `/plpvp status` — Toggle or check your PvP
+- `/plpvpadmin wand` — Get the zone wand
+- `/plpvpadmin zone create <name>` — Create a zone
+- `/plpvpadmin zone delete <name>` — Delete a zone
+- `/plpvpadmin zone list` — List all zones
+- `/plpvpadmin zone info <name>` — Show zone details
+- `/plpvpadmin player <name> info|reset|setdebt <sec>` — Manage player data
+- `/plpvpadmin simtime <seconds>` — Add fake playtime (for testing)
+- `/plpvpadmin reload` — Reload config
+
+
+## Permissions
+- `pvptoggle.use` — All players
+- `pvptoggle.admin` — Admins/OP
+- `pvptoggle.bypass` — Bypass playtime debt (OP by default)
+
+
+## Zones
+Select two blocks with `/plpvpadmin wand` (left and right click), then use `/plpvpadmin zone create <name>`. Both blocks must be in the same world.
+
+
+
+## Playtime Debt
+You build up PvP debt as you play. There are two modes:
+- `per_hour`: Every X hours played gives Y minutes of PvP debt
+- `per_minute`: Every X minutes played gives Y minutes of PvP debt
+Debt only counts down if at least two players are online. Logging out does not reset debt.
+
+### PvP Debt Cap
+Players can only accumulate up to a set amount of PvP debt (`pvp-debt-cap` in config). If you reach this cap, PvP is forced ON until you work off your debt. You get a chat notification when this happens.
+
+
+## Config
+All settings are in `config.yml`:
+- `default-pvp-state`: PvP enabled/disabled for new players
 - `playtime.mode`: "per_hour" or "per_minute"
-- `playtime.hours-per-cycle`: Hours per cycle (for per_hour mode)
-- `playtime.minutes-per-cycle`: Minutes played per cycle (for per_minute mode)
-- `playtime.forced-minutes`: Minutes of forced PvP per cycle
-- `pvp-debt-cap`: Maximum PvP debt (in minutes) a player can accumulate before PvP is forced on
+- `playtime.hours-per-cycle`: Hours per cycle (per_hour mode)
+- `playtime.minutes-per-cycle`: Minutes per cycle (per_minute mode)
+- `playtime.forced-minutes`: Forced PvP minutes per cycle
+- `pvp-debt-cap`: Max PvP debt (minutes) before PvP is forced
 - `zone-wand-material`: Wand item (default: BLAZE_ROD)
 - `save-interval`: Auto-save interval (minutes)
 - `debug`: Print debug info
-Messages are customizable, use `&` color codes.
+Messages are customizable. Use `&` for color codes.
 
-Data:
+
+## Data
 - `playerdata.yml`: PvP state, playtime, debt
 - `zones.yml`: Zone definitions
-Auto-saved every 5 minutes, on player quit, and shutdown.
+Data is auto-saved every 5 minutes, on player quit, and server shutdown.
 
-Troubleshooting:
-- PvP not working? Check permissions/config.
-- Make sure you're running Java 17+.
-- `/pvpadmin reload` after editing config.
-- Set `debug: true` in config for more logs.
 
-Build:
+## Troubleshooting
+- PvP not working? Check permissions and config
+- Make sure you're running Java 17 or higher
+- Use `/plpvpadmin reload` after editing config
+- Set `debug: true` in config for more logs
+
+
+## Build
 Run `mvn clean package`.
-Jar will be in `target/PolarPvP-Manager-1.0.0.jar`.
+The jar will be in `target/PolarPvP-Manager-1.0.0.jar`.
 
-License: See LICENSE.
+## License
+See LICENSE.
