@@ -30,12 +30,14 @@ Zones:
 Use `/pvpadmin wand` to select two blocks (left/right click), then `/pvpadmin zone create <name>`. Both blocks must be in the same world.
 
 Playtime Debt:
-Every hour of playtime (configurable) adds forced PvP time. Debt only counts down if 2+ players are online. Logging out doesn't help.
+Choose between two modes: "per_hour" (every X hours = Y minutes PvP) or "per_minute" (every X minutes played = Y minutes PvP). Debt only counts down if 2+ players are online. Logging out doesn't help.
 
 Config:
 Everything is in `config.yml`. Main stuff:
 - `default-pvp-state`: PvP on/off for new players
-- `playtime.hours-per-cycle`: Hours per forced PvP cycle
+- `playtime.mode`: "per_hour" or "per_minute"
+- `playtime.hours-per-cycle`: Hours per cycle (for per_hour mode)
+- `playtime.minutes-per-cycle`: Minutes played per cycle (for per_minute mode)
 - `playtime.forced-minutes`: Minutes of forced PvP per cycle
 - `zone-wand-material`: Wand item (default: BLAZE_ROD)
 - `save-interval`: Auto-save interval (minutes)

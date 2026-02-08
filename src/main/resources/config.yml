@@ -18,9 +18,13 @@ messages:
 
 # Playtime settings
 playtime:
-  # How many hours of playtime trigger a forced PvP period
+  # Mode: "per_hour" (every X hours = Y minutes PvP) or "per_minute" (every X minutes played = Y minutes PvP)
+  mode: per_hour
+  # For per_hour mode: hours per cycle
   hours-per-cycle: 1
-  # How many minutes of forced PvP per cycle
+  # For per_minute mode: minutes played per cycle
+  minutes-per-cycle: 5
+  # Minutes of forced PvP per cycle
   forced-minutes: 20
 
 # Zone wand material (any valid Bukkit Material name)

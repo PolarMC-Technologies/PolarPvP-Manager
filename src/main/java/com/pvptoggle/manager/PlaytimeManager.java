@@ -47,8 +47,14 @@ public class PlaytimeManager {
 
     private void tick() {
         int onlineCount = Bukkit.getOnlinePlayers().size();
-        long cycleSeconds = plugin.getConfig().getInt("playtime.hours-per-cycle", 1) * 3600L;
+        String mode = plugin.getConfig().getString("playtime.mode", "per_hour");
+        long cycleSeconds;
         int forcedMinutes = plugin.getConfig().getInt("playtime.forced-minutes", 20);
+        if ("per_minute".equals(mode)) {
+            cycleSeconds = plugin.getConfig().getInt("playtime.minutes-per-cycle", 5) * 60L;
+        } else {
+            cycleSeconds = plugin.getConfig().getInt("playtime.hours-per-cycle", 1) * 3600L;
+        }
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
