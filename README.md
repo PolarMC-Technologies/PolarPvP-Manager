@@ -123,5 +123,4 @@ target/PolarPvP-Manager-1.0.0.jar
 ```
 
 ## License
-
-See LICENSE.
+GPL3
