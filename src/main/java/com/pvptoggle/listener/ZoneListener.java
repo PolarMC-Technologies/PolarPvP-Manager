@@ -10,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -29,6 +30,7 @@ public class ZoneListener implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         if (!player.hasPermission("pvptoggle.admin")) return;
+        if (event.getHand() == EquipmentSlot.OFF_HAND) return;
 
         ItemStack item = player.getInventory().getItemInMainHand();
         if (!isZoneWand(item)) return;

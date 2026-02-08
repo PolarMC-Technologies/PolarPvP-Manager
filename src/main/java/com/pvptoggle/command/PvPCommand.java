@@ -45,7 +45,17 @@ public class PvPCommand implements TabExecutor {
     }
 
     private void toggleOn(Player player) {
+        if (plugin.getPvPManager().isForcedPvP(player)) {
+            MessageUtil.send(player, plugin.getConfig().getString("messages.pvp-already-forced",
+                    "&7PvP is already &cforced on &7for you right now."));
+            return;
+        }
         PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
+        if (data.isPvpEnabled()) {
+            MessageUtil.send(player, plugin.getConfig().getString("messages.pvp-already-on",
+                    "&7Your PvP is already &aenabled&7."));
+            return;
+        }
         data.setPvpEnabled(true);
         MessageUtil.send(player,
                 plugin.getConfig().getString("messages.pvp-enabled", "&a&l⚔ PvP has been enabled!"));
@@ -57,12 +67,12 @@ public class PvPCommand implements TabExecutor {
             if (plugin.getZoneManager().isInForcedPvPZone(player.getLocation())) {
                 MessageUtil.send(player,
                         plugin.getConfig().getString("messages.pvp-forced-zone",
-                                "&c&lYou are in a forced PvP zone! PvP cannot be disabled here."));
+                                "&4&l\u26a0 &cYou're in a &4forced PvP zone&c! You can't disable PvP here."));
             } else {
                 PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
                 String template = Objects.requireNonNullElse(
                         plugin.getConfig().getString("messages.pvp-forced-playtime"),
-                        "&c&lPvP is forced due to playtime! &f%time% &cremaining.");
+                        "&4&l\u26a0 &cForced PvP active! &f%time% &cremaining.");
                 String msg = template.replace("%time%", MessageUtil.formatTime(data.getPvpDebtSeconds()));
                 MessageUtil.send(player, msg);
             }
@@ -70,6 +80,11 @@ public class PvPCommand implements TabExecutor {
         }
 
         PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
+        if (!data.isPvpEnabled()) {
+            MessageUtil.send(player, plugin.getConfig().getString("messages.pvp-already-off",
+                    "&7Your PvP is already &cdisabled&7."));
+            return;
+        }
         data.setPvpEnabled(false);
         MessageUtil.send(player,
                 plugin.getConfig().getString("messages.pvp-disabled", "&c⚔ PvP has been disabled."));

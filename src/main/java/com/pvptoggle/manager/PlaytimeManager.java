@@ -9,11 +9,7 @@ import com.pvptoggle.PvPTogglePlugin;
 import com.pvptoggle.model.PlayerData;
 import com.pvptoggle.util.MessageUtil;
 
-/*
- * Runs a 1-second tick for every online player: tracks cumulative playtime,
- * generates forced-PvP debt at hour milestones, and counts it down (only
- * when 2+ players are online). Also handles the action-bar HUD + auto-save.
- */
+
 public class PlaytimeManager {
 
     private final PvPTogglePlugin plugin;
