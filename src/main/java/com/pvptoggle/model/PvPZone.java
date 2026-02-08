@@ -3,7 +3,6 @@ package com.pvptoggle.model;
 import org.bukkit.Location;
 import org.bukkit.World;
 
-// AABB region in a world that forces PvP for everyone inside.
 public class PvPZone {
 
     private final String name;
@@ -28,7 +27,6 @@ public class PvPZone {
         this.z2 = Math.max(corners.az(), corners.bz());
     }
 
-    /** Checks whether the given location is within this zone. */
     public boolean contains(Location location) {
         if (location == null) return false;
         World world = location.getWorld();

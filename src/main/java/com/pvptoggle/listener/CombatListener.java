@@ -12,8 +12,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import com.pvptoggle.PvPTogglePlugin;
 import com.pvptoggle.util.MessageUtil;
 
-// Blocks PvP damage when either player has it off. Traces projectiles
-// and tamed mobs back to their owner for the check.
 public class CombatListener implements Listener {
 
     private final PvPTogglePlugin plugin;
@@ -31,15 +29,16 @@ public class CombatListener implements Listener {
         if (attacker.equals(victim)) return;
 
         if (plugin.getConfig().getBoolean("debug", false)) {
-            plugin.getLogger().info("[DEBUG] Combat: " + attacker.getName() + " -> " + victim.getName()
-                    + " | damager type: " + event.getDamager().getType());
+            plugin.getLogger().log(java.util.logging.Level.INFO, "[DEBUG] Combat: {0} -> {1} | damager type: {2}",
+                    new Object[]{attacker.getName(), victim.getName(), event.getDamager().getType()});
         }
 
         boolean attackerPvP = plugin.getPvPManager().isEffectivePvPEnabled(attacker);
         boolean victimPvP   = plugin.getPvPManager().isEffectivePvPEnabled(victim);
 
         if (plugin.getConfig().getBoolean("debug", false)) {
-            plugin.getLogger().info("[DEBUG] Result: attackerPvP=" + attackerPvP + ", victimPvP=" + victimPvP);
+            plugin.getLogger().log(java.util.logging.Level.INFO, "[DEBUG] Result: attackerPvP={0}, victimPvP={1}",
+                    new Object[]{attackerPvP, victimPvP});
         }
 
         if (!attackerPvP) {

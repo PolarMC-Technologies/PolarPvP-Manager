@@ -21,7 +21,7 @@ public class PlaytimeManager {
     }
 
     public void startTracking() {
-        // Main tick — every 20 ticks (1 second)
+        // 1 second tick
         tickTask = new BukkitRunnable() {
             @Override
             public void run() {

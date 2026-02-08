@@ -1,6 +1,5 @@
 package com.pvptoggle.model;
 
-// Per-player state that gets saved to playerdata.yml
 public class PlayerData {
 
     private boolean pvpEnabled;

@@ -19,7 +19,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import com.pvptoggle.PvPTogglePlugin;
 import com.pvptoggle.model.PvPZone;
 
-// Zone CRUD, wand selection state, and zones.yml persistence.
 public class ZoneManager {
 
     private final PvPTogglePlugin plugin;
@@ -38,7 +37,6 @@ public class ZoneManager {
         return selections.get(playerUUID);
     }
 
-    /** Creates a zone from the player's current wand selection. Returns false if incomplete. */
     public boolean createZone(String name, UUID playerUUID) {
         Location[] sel = selections.get(playerUUID);
         if (sel == null || sel[0] == null || sel[1] == null) return false;
@@ -63,7 +61,6 @@ public class ZoneManager {
         return false;
     }
 
-    /** @return the zone with the given name, or null. */
     public PvPZone getZone(String name) {
         return zones.get(name.toLowerCase());
     }

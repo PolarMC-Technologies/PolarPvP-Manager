@@ -17,7 +17,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import com.pvptoggle.PvPTogglePlugin;
 import com.pvptoggle.util.MessageUtil;
 
-// Wand click selection (pos1/pos2) and zone enter/exit messages.
 public class ZoneListener implements Listener {
 
     private final PvPTogglePlugin plugin;

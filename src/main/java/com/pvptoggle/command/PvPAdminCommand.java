@@ -25,10 +25,9 @@ import com.pvptoggle.util.MessageUtil;
 // /pvpadmin wand | zone create/delete/list/info | player <name> info/reset/setdebt | reload
 public class PvPAdminCommand implements TabExecutor {
 
-    private static final String CMD_PLAYER = "player";
-    private static final String CMD_DELETE = "delete";
-    private static final String CMD_ZONE = "zone";
-    private static final String PLAYERS_ONLY = "&cThis command can only be used by players.";
+    private static final String PLAYERS_ONLY = "&cOnly players can use this.";
+    private static final String SUB_PLAYER = "player";
+    private static final String SUB_DELETE = "delete";
 
     private final PvPTogglePlugin plugin;
 
@@ -45,8 +44,8 @@ public class PvPAdminCommand implements TabExecutor {
 
         switch (args[0].toLowerCase()) {
             case "wand"     -> handleWand(sender);
-            case CMD_ZONE   -> handleZone(sender, args);
-            case CMD_PLAYER -> handlePlayer(sender, args);
+            case "zone"     -> handleZone(sender, args);
+            case SUB_PLAYER -> handlePlayer(sender, args);
             case "reload"   -> handleReload(sender);
             case "simtime"  -> handleSimtime(sender, args);
             default         -> { return false; }
@@ -90,7 +89,7 @@ public class PvPAdminCommand implements TabExecutor {
 
         switch (args[1].toLowerCase()) {
             case "create"    -> zoneCreate(sender, args);
-            case CMD_DELETE  -> zoneDelete(sender, args);
+            case SUB_DELETE  -> zoneDelete(sender, args);
             case "list"      -> zoneList(sender);
             case "info"      -> zoneInfo(sender, args);
             default -> MessageUtil.send(sender, "&cUsage: /pvpadmin zone <create|delete|list|info> [name]");
@@ -254,19 +253,19 @@ public class PvPAdminCommand implements TabExecutor {
         List<String> completions = new ArrayList<>();
 
         switch (args.length) {
-            case 1 -> completions.addAll(Arrays.asList("wand", CMD_ZONE, CMD_PLAYER, "reload", "simtime"));
+            case 1 -> completions.addAll(Arrays.asList("wand", "zone", SUB_PLAYER, "reload", "simtime"));
             case 2 -> {
-                if (args[0].equalsIgnoreCase(CMD_ZONE)) {
-                    completions.addAll(Arrays.asList("create", CMD_DELETE, "list", "info"));
-                } else if (args[0].equalsIgnoreCase(CMD_PLAYER)) {
+                if (args[0].equalsIgnoreCase("zone")) {
+                    completions.addAll(Arrays.asList("create", SUB_DELETE, "list", "info"));
+                } else if (args[0].equalsIgnoreCase(SUB_PLAYER)) {
                     Bukkit.getOnlinePlayers().forEach(p -> completions.add(p.getName()));
                 }
             }
             case 3 -> {
-                if (args[0].equalsIgnoreCase(CMD_ZONE)
-                        && (args[1].equalsIgnoreCase(CMD_DELETE) || args[1].equalsIgnoreCase("info"))) {
+                if (args[0].equalsIgnoreCase("zone")
+                        && (args[1].equalsIgnoreCase(SUB_DELETE) || args[1].equalsIgnoreCase("info"))) {
                     completions.addAll(plugin.getZoneManager().getZoneNames());
-                } else if (args[0].equalsIgnoreCase(CMD_PLAYER)) {
+                } else if (args[0].equalsIgnoreCase(SUB_PLAYER)) {
                     completions.addAll(Arrays.asList("info", "reset", "setdebt"));
                 }
             }
