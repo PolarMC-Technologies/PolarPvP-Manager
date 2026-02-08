@@ -17,6 +17,8 @@ import com.pvptoggle.util.MessageUtil;
 // /plpvp on|off|status
 public class PvPCommand implements TabExecutor {
 
+    private static final String PREFIX = "&b[PolarPvP-Manager] ";
+
     private final PvPTogglePlugin plugin;
 
     public PvPCommand(PvPTogglePlugin plugin) {
@@ -26,7 +28,7 @@ public class PvPCommand implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            MessageUtil.send(sender, "&b[PolarPvP-Manager] &cThis command can only be used by players.");
+            MessageUtil.send(sender, PREFIX + "&cThis command can only be used by players.");
             return false;
         }
 
@@ -41,20 +43,22 @@ public class PvPCommand implements TabExecutor {
             case "status" -> showStatus(player);
             case "testdebt" -> {
                 if (!player.isOp() && !player.hasPermission("pvptoggle.admin")) {
-                    MessageUtil.send(player, "&b[PolarPvP-Manager] &cYou don't have permission to use this command.");
+                    MessageUtil.send(player, PREFIX + "&cYou don't have permission to use this command.");
                     return true;
                 }
                 if (args.length < 2) {
-                    MessageUtil.send(player, "&b[PolarPvP-Manager] &7Usage: /plpvp testdebt <seconds>");
+                    MessageUtil.send(player, PREFIX + "&7Usage: /plpvp testdebt <seconds>");
                     return true;
                 }
                 try {
                     long seconds = Long.parseLong(args[1]);
                     PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
                     data.setPvpDebtSeconds(seconds);
-                    MessageUtil.send(player, "&b[PolarPvP-Manager] &aSet your PvP debt to &f" + MessageUtil.formatTime(seconds));
+                    MessageUtil.send(player, PREFIX + "&aSet your PvP debt to &f" + MessageUtil.formatTime(seconds));
+                    // Immediately enforce cap if needed
+                    com.pvptoggle.manager.PlaytimeManager.enforceDebtCap(plugin, player, data);
                 } catch (NumberFormatException e) {
-                    MessageUtil.send(player, "&b[PolarPvP-Manager] &cInvalid number: " + args[1]);
+                    MessageUtil.send(player, PREFIX + "&cInvalid number: " + args[1]);
                 }
                 return true;
             }
@@ -65,48 +69,48 @@ public class PvPCommand implements TabExecutor {
 
     private void toggleOn(Player player) {
         if (plugin.getPvPManager().isForcedPvP(player)) {
-            MessageUtil.send(player, "&b[PolarPvP-Manager] " + plugin.getConfig().getString("messages.pvp-already-forced",
+            MessageUtil.send(player, PREFIX + plugin.getConfig().getString("messages.pvp-already-forced",
                 "&7PvP is already &cforced on &7for you right now."));
             return;
         }
         PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
         if (data.isPvpEnabled()) {
-            MessageUtil.send(player, "&b[PolarPvP-Manager] " + plugin.getConfig().getString("messages.pvp-already-on",
+            MessageUtil.send(player, PREFIX + plugin.getConfig().getString("messages.pvp-already-on",
                 "&7Your PvP is already &aenabled&7."));
             return;
         }
         data.setPvpEnabled(true);
         MessageUtil.send(player,
-            "&b[PolarPvP-Manager] " + plugin.getConfig().getString("messages.pvp-enabled", "&a&l⚔ PvP has been enabled!"));
+            PREFIX + plugin.getConfig().getString("messages.pvp-enabled", "&a&l⚔ PvP has been enabled!"));
     }
 
     private void toggleOff(Player player) {
         // Prevent toggling off while forced
         if (plugin.getPvPManager().isForcedPvP(player)) {
             if (plugin.getZoneManager().isInForcedPvPZone(player.getLocation())) {
-            MessageUtil.send(player,
-                "&b[PolarPvP-Manager] " + plugin.getConfig().getString("messages.pvp-forced-zone",
-                    "&4&l\u26a0 &cYou're in a &4forced PvP zone&c! You can't disable PvP here."));
+                MessageUtil.send(player,
+                    PREFIX + plugin.getConfig().getString("messages.pvp-forced-zone",
+                        "&4&l\u26a0 &cYou're in a &4forced PvP zone&c! You can't disable PvP here."));
             } else {
-            PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
-            String template = Objects.requireNonNullElse(
-                plugin.getConfig().getString("messages.pvp-forced-playtime"),
-                "&4&l\u26a0 &cForced PvP active! &f%time% &cremaining.");
-            String msg = template.replace("%time%", MessageUtil.formatTime(data.getPvpDebtSeconds()));
-            MessageUtil.send(player, "&b[PolarPvP-Manager] " + msg);
+                PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
+                String template = Objects.requireNonNullElse(
+                    plugin.getConfig().getString("messages.pvp-forced-playtime"),
+                    "&4&l\u26a0 &cForced PvP active! &f%time% &cremaining.");
+                String msg = template.replace("%time%", MessageUtil.formatTime(data.getPvpDebtSeconds()));
+                MessageUtil.send(player, PREFIX + msg);
             }
             return;
         }
 
         PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
         if (!data.isPvpEnabled()) {
-            MessageUtil.send(player, "&b[PolarPvP-Manager] " + plugin.getConfig().getString("messages.pvp-already-off",
+            MessageUtil.send(player, PREFIX + plugin.getConfig().getString("messages.pvp-already-off",
                 "&7Your PvP is already &cdisabled&7."));
             return;
         }
         data.setPvpEnabled(false);
         MessageUtil.send(player,
-            "&b[PolarPvP-Manager] " + plugin.getConfig().getString("messages.pvp-disabled", "&c⚔ PvP has been disabled."));
+            PREFIX + plugin.getConfig().getString("messages.pvp-disabled", "&c⚔ PvP has been disabled."));
     }
 
     private void showStatus(Player player) {
@@ -114,21 +118,21 @@ public class PvPCommand implements TabExecutor {
         boolean effective  = plugin.getPvPManager().isEffectivePvPEnabled(player);
         boolean forced     = plugin.getPvPManager().isForcedPvP(player);
 
-        MessageUtil.send(player, "&b[PolarPvP-Manager] &6&l══════ PvP Status ══════");
-        MessageUtil.send(player, "&b[PolarPvP-Manager] &7PvP: " + (effective ? "&a✓ Enabled" : "&c✗ Disabled"));
-        MessageUtil.send(player, "&b[PolarPvP-Manager] &7Manual toggle: " + (data.isPvpEnabled() ? "&aOn" : "&cOff"));
+        MessageUtil.send(player, PREFIX + "&6&l══════ PvP Status ══════");
+        MessageUtil.send(player, PREFIX + "&7PvP: " + (effective ? "&a✓ Enabled" : "&c✗ Disabled"));
+        MessageUtil.send(player, PREFIX + "&7Manual toggle: " + (data.isPvpEnabled() ? "&aOn" : "&cOff"));
 
         if (forced) {
-            MessageUtil.send(player, "&b[PolarPvP-Manager] &7Forced: &c&lYes");
+            MessageUtil.send(player, PREFIX + "&7Forced: &c&lYes");
             if (plugin.getZoneManager().isInForcedPvPZone(player.getLocation())) {
-                MessageUtil.send(player, "&b[PolarPvP-Manager] &7  Reason: &eForced PvP Zone");
+                MessageUtil.send(player, PREFIX + "&7  Reason: &eForced PvP Zone");
             }
             if (data.getPvpDebtSeconds() > 0) {
-                MessageUtil.send(player, "&b[PolarPvP-Manager] &7  Playtime debt: &f" + MessageUtil.formatTime(data.getPvpDebtSeconds()));
+                MessageUtil.send(player, PREFIX + "&7  Playtime debt: &f" + MessageUtil.formatTime(data.getPvpDebtSeconds()));
             }
         }
 
-        MessageUtil.send(player, "&b[PolarPvP-Manager] &7Total playtime: &f" + MessageUtil.formatTime(data.getTotalPlaytimeSeconds()));
+        MessageUtil.send(player, PREFIX + "&7Total playtime: &f" + MessageUtil.formatTime(data.getTotalPlaytimeSeconds()));
     }
 
     @Override

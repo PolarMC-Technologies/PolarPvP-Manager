@@ -22,15 +22,19 @@ public class PlayerListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         PlayerData data = plugin.getPvPManager().getPlayerData(event.getPlayer().getUniqueId());
 
-        // If they have debt, remind them after login
-        if (data.getPvpDebtSeconds() > 0 && !event.getPlayer().hasPermission("pvptoggle.bypass")) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                if (event.getPlayer().isOnline()) {
-                    MessageUtil.send(event.getPlayer(),
-                            "&c&l⚔ You have forced PvP time remaining: &f"
-                                    + MessageUtil.formatTime(data.getPvpDebtSeconds()));
-                }
-            }, 40L); // 2 seconds after join
+        // Enforce PvP cap immediately on join
+        if (!event.getPlayer().hasPermission("pvptoggle.bypass")) {
+            com.pvptoggle.manager.PlaytimeManager.enforceDebtCap(plugin, event.getPlayer(), data);
+            // If they still have debt (not forced), remind them after login
+            if (data.getPvpDebtSeconds() > 0) {
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    if (event.getPlayer().isOnline()) {
+                        MessageUtil.send(event.getPlayer(),
+                                "&c&l⚔ You have forced PvP time remaining: &f"
+                                        + MessageUtil.formatTime(data.getPvpDebtSeconds()));
+                    }
+                }, 40L); // 2 seconds after join
+            }
         }
     }
 

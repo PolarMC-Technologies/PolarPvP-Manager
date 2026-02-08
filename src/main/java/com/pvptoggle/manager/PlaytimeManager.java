@@ -9,7 +9,6 @@ import com.pvptoggle.PvPTogglePlugin;
 import com.pvptoggle.model.PlayerData;
 import com.pvptoggle.util.MessageUtil;
 
-
 public class PlaytimeManager {
 
     private final PvPTogglePlugin plugin;
@@ -18,6 +17,29 @@ public class PlaytimeManager {
 
     public PlaytimeManager(PvPTogglePlugin plugin) {
         this.plugin = plugin;
+    }
+
+
+    /**
+     * Enforce PvP ON if debt exceeds cap. Returns true if PvP was forced.
+     */
+    public static boolean enforceDebtCap(PvPTogglePlugin plugin, Player player, PlayerData data) {
+        int debtCapMinutes = plugin.getConfig().getInt("pvp-debt-cap", 60);
+        long debtCapSeconds = debtCapMinutes * 60L;
+        if (!data.isPvpEnabled() && data.getPvpDebtSeconds() >= debtCapSeconds) {
+            data.setPvpEnabled(true);
+            data.setPvpDebtSeconds(0);
+            MessageUtil.send(player, "&b[PolarPvP-Manager] &cYour PvP debt reached the maximum! PvP has been forced ON until you work it off.");
+            if (plugin.getConfig().getBoolean("debug", false)) {
+                java.util.logging.Logger logger = plugin.getLogger();
+                if (logger.isLoggable(java.util.logging.Level.INFO)) {
+                    logger.info(String.format("[PvP] Forced PvP ON for %s due to debt cap (%ds debt)", player.getName(), data.getPvpDebtSeconds()));
+                }
+            }
+            return true;
+        }
+
+        return false;
     }
 
     public void startTracking() {
@@ -84,17 +106,7 @@ public class PlaytimeManager {
         if (data.getPvpDebtSeconds() <= 0 || player.hasPermission("pvptoggle.bypass")) return;
 
         // Enforce PvP ON if debt exceeds cap
-        int debtCapMinutes = plugin.getConfig().getInt("pvp-debt-cap", 60);
-        long debtCapSeconds = debtCapMinutes * 60L;
-        if (!data.isPvpEnabled() && data.getPvpDebtSeconds() >= debtCapSeconds) {
-            data.setPvpEnabled(true);
-            data.setPvpDebtSeconds(0);
-            MessageUtil.send(player, "&b[PolarPvP-Manager] &cYour PvP debt reached the maximum! PvP has been forced ON until you work it off.");
-            if (plugin.getConfig().getBoolean("debug", false)) {
-                plugin.getLogger().info("[PvP] Forced PvP ON for " + player.getName() + " due to debt cap (" + data.getPvpDebtSeconds() + "s debt)");
-            }
-            return;
-        }
+        if (enforceDebtCap(plugin, player, data)) return;
 
         if (onlineCount >= 2) {
             data.setPvpDebtSeconds(data.getPvpDebtSeconds() - 1);
