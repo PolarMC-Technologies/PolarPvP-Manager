@@ -14,8 +14,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 import com.pvptoggle.PvPTogglePlugin;
 
-// Checks GitHub releases for a newer version. Runs async on startup,
-// caches the result, and notifies ops when they join.
 public class UpdateChecker implements Listener {
 
     private static final String GITHUB_API =
@@ -56,11 +54,11 @@ public class UpdateChecker implements Listener {
 
                 if (!remote.equals(current) && isNewer(remote, current)) {
                     latestVersion = remote;
-                    plugin.getLogger().warning("A new version is available: v" + remote
-                            + " (you're on v" + current + ")");
+                    plugin.getLogger().log(Level.WARNING, "A new version is available: v{0} (you''re on v{1})",
+                            new Object[]{remote, current});
                     plugin.getLogger().warning("Download: https://github.com/PolarMC-Technologies/PolarPvP-Manager/releases/latest");
                 }
-            } catch (Exception e) {
+            } catch (java.io.IOException e) {
                 plugin.getLogger().log(Level.FINE, "Update check failed", e);
             }
         });

@@ -15,7 +15,6 @@ import org.bukkit.entity.Player;
 import com.pvptoggle.PvPTogglePlugin;
 import com.pvptoggle.model.PlayerData;
 
-// Player data + effective PvP state resolution + playerdata.yml persistence
 public class PvPManager {
 
     private final PvPTogglePlugin plugin;
@@ -25,7 +24,6 @@ public class PvPManager {
         this.plugin = plugin;
     }
 
-    /** Returns the data for this player, creating defaults if needed. */
     public PlayerData getPlayerData(UUID uuid) {
         return playerDataMap.computeIfAbsent(uuid, k -> {
             PlayerData data = new PlayerData();
@@ -34,22 +32,16 @@ public class PvPManager {
         });
     }
 
-    /** Replace data with fresh defaults. */
     public void resetPlayerData(UUID uuid) {
         PlayerData data = new PlayerData();
         data.setPvpEnabled(plugin.getConfig().getBoolean("default-pvp-state", false));
         playerDataMap.put(uuid, data);
     }
 
-    /** Read-only view of all stored data (for admin commands). */
     public Map<UUID, PlayerData> getAllPlayerData() {
         return Collections.unmodifiableMap(playerDataMap);
     }
 
-    /**
-     * Whether PvP is effectively on for this player right now,
-     * considering their toggle, zones, and playtime debt.
-     */
     public boolean isEffectivePvPEnabled(Player player) {
         PlayerData data = getPlayerData(player.getUniqueId());
 
@@ -58,14 +50,13 @@ public class PvPManager {
         boolean hasDebt = data.getPvpDebtSeconds() > 0 && !player.hasPermission("pvptoggle.bypass");
 
         if (plugin.getConfig().getBoolean("debug", false)) {
-            plugin.getLogger().info("[DEBUG] PvP check for " + player.getName()
-                    + ": toggle=" + toggle + ", inZone=" + inZone + ", hasDebt=" + hasDebt);
+            plugin.getLogger().log(Level.INFO, "[DEBUG] PvP check for {0}: toggle={1}, inZone={2}, hasDebt={3}",
+                    new Object[]{player.getName(), toggle, inZone, hasDebt});
         }
 
         return toggle || inZone || hasDebt;
     }
 
-    /** True if player can't toggle PvP off right now (zone or debt). */
     public boolean isForcedPvP(Player player) {
         if (plugin.getZoneManager().isInForcedPvPZone(player.getLocation())) return true;
         PlayerData data = getPlayerData(player.getUniqueId());

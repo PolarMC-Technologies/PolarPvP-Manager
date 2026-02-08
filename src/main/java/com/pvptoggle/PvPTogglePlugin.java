@@ -23,7 +23,6 @@ public class PvPTogglePlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // ASCII banner
         String version = getDescription().getVersion();
         getServer().getConsoleSender().sendMessage("");
         getServer().getConsoleSender().sendMessage("§b ____       _            ____       ____");
@@ -34,24 +33,20 @@ public class PvPTogglePlugin extends JavaPlugin {
         getServer().getConsoleSender().sendMessage("§7  PolarPvP-Manager §fv" + version + " §7| §aBukkit/Spigot/Paper/Purpur");
         getServer().getConsoleSender().sendMessage("");
 
-        // Config
         saveDefaultConfig();
 
-        // Managers
         pvpManager      = new PvPManager(this);
         zoneManager     = new ZoneManager(this);
         playtimeManager = new PlaytimeManager(this);
-
-        // Load persisted data
         pvpManager.loadData();
         zoneManager.loadZones();
 
-        // Listeners
+        // listeners
         getServer().getPluginManager().registerEvents(new CombatListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         getServer().getPluginManager().registerEvents(new ZoneListener(this), this);
 
-        // Commands
+        // commands
         PvPCommand pvpCmd = new PvPCommand(this);
         Objects.requireNonNull(getCommand("pvp")).setExecutor(pvpCmd);
         Objects.requireNonNull(getCommand("pvp")).setTabCompleter(pvpCmd);
@@ -60,10 +55,8 @@ public class PvPTogglePlugin extends JavaPlugin {
         Objects.requireNonNull(getCommand("pvpadmin")).setExecutor(adminCmd);
         Objects.requireNonNull(getCommand("pvpadmin")).setTabCompleter(adminCmd);
 
-        // Start the 1-second playtime / debt ticker + auto-save
         playtimeManager.startTracking();
 
-        // Update checker
         UpdateChecker updateChecker = new UpdateChecker(this);
         getServer().getPluginManager().registerEvents(updateChecker, this);
         updateChecker.check();
@@ -73,10 +66,8 @@ public class PvPTogglePlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Stop scheduled tasks first
         if (playtimeManager != null) playtimeManager.stopTracking();
 
-        // Persist everything
         if (pvpManager != null)  pvpManager.saveData();
         if (zoneManager != null) zoneManager.saveZones();
 
