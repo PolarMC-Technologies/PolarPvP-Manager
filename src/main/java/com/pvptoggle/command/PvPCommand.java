@@ -85,24 +85,27 @@ public class PvPCommand implements TabExecutor {
     }
 
     private void toggleOff(Player player) {
-        // Prevent toggling off while forced
-        if (plugin.getPvPManager().isForcedPvP(player)) {
+        PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
+        // Prevent toggling off while forced or in debt
+        if (plugin.getPvPManager().isForcedPvP(player) || (data.getPvpDebtSeconds() > 0 && !player.hasPermission("pvptoggle.bypass"))) {
             if (plugin.getZoneManager().isInForcedPvPZone(player.getLocation())) {
                 MessageUtil.send(player,
                     PREFIX + plugin.getConfig().getString("messages.pvp-forced-zone",
                         "&4&l\u26a0 &cYou're in a &4forced PvP zone&c! You can't disable PvP here."));
-            } else {
-                PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
+            } else if (data.getPvpDebtSeconds() > 0) {
                 String template = Objects.requireNonNullElse(
                     plugin.getConfig().getString("messages.pvp-forced-playtime"),
                     "&4&l\u26a0 &cForced PvP active! &f%time% &cremaining.");
                 String msg = template.replace("%time%", MessageUtil.formatTime(data.getPvpDebtSeconds()));
                 MessageUtil.send(player, PREFIX + msg);
+            } else {
+                MessageUtil.send(player, PREFIX + "&cYou can't disable PvP right now.");
             }
+            // Always keep PvP enabled if in debt
+            data.setPvpEnabled(true);
             return;
         }
 
-        PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
         if (!data.isPvpEnabled()) {
             MessageUtil.send(player, PREFIX + plugin.getConfig().getString("messages.pvp-already-off",
                 "&7Your PvP is already &cdisabled&7."));
