@@ -130,7 +130,11 @@ public class PlaytimeManager {
 
                     if (!exempt) {
                         long earnedDebt = newCycles * hourlyForcedMinutes * 60L;
-                        long newDebt = Math.min(data.getPvpDebtSeconds() + earnedDebt, maxDebtSeconds);
+                        long newDebt = data.getPvpDebtSeconds() + earnedDebt;
+                        // Only cap debt when not solo — solo accumulation ignores the limit
+                        if (!isSolo) {
+                            newDebt = Math.min(newDebt, maxDebtSeconds);
+                        }
                         data.setPvpDebtSeconds(newDebt);
 
                         if (debug) {
@@ -155,7 +159,11 @@ public class PlaytimeManager {
                     long ratioSeconds = debtRatio * 60L; // ratio is in minutes
                     if (data.getPvpOffAccumulator() >= ratioSeconds) {
                         long earnedDebt = 60L; // 1 minute of debt per ratio-block
-                        long newDebt = Math.min(data.getPvpDebtSeconds() + earnedDebt, maxDebtSeconds);
+                        long newDebt = data.getPvpDebtSeconds() + earnedDebt;
+                        // Only cap debt when not solo — solo accumulation ignores the limit
+                        if (!isSolo) {
+                            newDebt = Math.min(newDebt, maxDebtSeconds);
+                        }
                         data.setPvpDebtSeconds(newDebt);
                         data.setPvpOffAccumulator(data.getPvpOffAccumulator() - ratioSeconds);
 
