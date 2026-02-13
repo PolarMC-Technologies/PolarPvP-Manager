@@ -16,12 +16,46 @@ messages:
   pvp-already-forced: "&7PvP is already &cforced on &7for you right now."
   no-permission: "&4&l✘ &cYou don't have permission to do that!"
 
-# Playtime settings
+# Playtime settings (legacy cycle-based mode)
 playtime:
   # How many hours of playtime trigger a forced PvP period
   hours-per-cycle: 1
   # How many minutes of forced PvP per cycle
   forced-minutes: 20
+
+# PvP Force Timer (takes priority over legacy playtime if enabled)
+pvp-force-timer:
+  enabled: true
+  # Ratio mode: "debt" or "hourly"
+  #   debt   — X minutes PvP-off = 1 minute forced-PvP debt (tracks PvP-off time)
+  #   hourly — X minutes forced PvP per hour of total playtime (tracks total playtime)
+  ratio-mode: debt
+  # --- debt mode settings ---
+  # Debt ratio: X minutes PvP-off = 1 minute forced-PvP debt
+  debt-ratio: 5
+  # --- hourly mode settings ---
+  # How many minutes of forced PvP per hour of total playtime
+  hourly-forced-minutes: 20
+  # --- shared settings ---
+  # Maximum accumulated debt in minutes
+  max-debt: 60
+  # Minimum consecutive forced-PvP duration in minutes (debt pays off in blocks of this size)
+  minimum-forced-duration: 20
+  exemptions:
+    # Don't accumulate debt when PvP is manually enabled
+    manual-pvp: true
+    # Don't accumulate debt when in a forced PvP zone
+    forced-zones: true
+    # Don't activate forced PvP when alone on the server.
+    # If true, forced PvP will not activate and the countdown pauses while solo.
+    solo-server: true
+    # Allow debt to keep building up while solo.
+    # If true, debt accumulates even when alone — but forced PvP only activates
+    # once another player joins. Debt ignores the max-debt cap while solo, so it
+    # can grow past the limit. If false, debt does not accumulate while solo.
+    # Only relevant when solo-server is true. When solo-server is false, debt
+    # always accumulates regardless of this setting.
+    solo-accumulate: true
 
 # Zone wand material (any valid Bukkit Material name)
 zone-wand-material: BLAZE_ROD

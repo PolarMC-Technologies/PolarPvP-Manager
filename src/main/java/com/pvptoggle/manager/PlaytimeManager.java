@@ -1,5 +1,7 @@
 package com.pvptoggle.manager;
 
+import java.util.logging.Level;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -47,16 +49,183 @@ public class PlaytimeManager {
 
     private void tick() {
         int onlineCount = Bukkit.getOnlinePlayers().size();
-        long cycleSeconds = plugin.getConfig().getInt("playtime.hours-per-cycle", 1) * 3600L;
-        int forcedMinutes = plugin.getConfig().getInt("playtime.forced-minutes", 20);
+        boolean forceTimerEnabled = plugin.getConfig().getBoolean("pvp-force-timer.enabled", false);
+        boolean debug = plugin.getConfig().getBoolean("debug", false);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
             data.setTotalPlaytimeSeconds(data.getTotalPlaytimeSeconds() + 1);
-            checkCycleMilestones(player, data, cycleSeconds, forcedMinutes);
-            tickDebt(player, data, onlineCount);
+
+            if (forceTimerEnabled) {
+                tickForceTimer(player, data, onlineCount, debug);
+            } else {
+                // Legacy cycle-based mode
+                long cycleSeconds = plugin.getConfig().getInt("playtime.hours-per-cycle", 1) * 3600L;
+                int forcedMinutes = plugin.getConfig().getInt("playtime.forced-minutes", 20);
+                checkCycleMilestones(player, data, cycleSeconds, forcedMinutes);
+                tickDebtLegacy(player, data, onlineCount);
+            }
         }
     }
+
+    // ─── Debt-ratio mode (pvp-force-timer) ───────────────────────────────
+
+    private void tickForceTimer(Player player, PlayerData data, int onlineCount, boolean debug) {
+        if (player.hasPermission("pvptoggle.bypass")) return;
+
+        String ratioMode = plugin.getConfig().getString("pvp-force-timer.ratio-mode", "debt");
+        int debtRatio = plugin.getConfig().getInt("pvp-force-timer.debt-ratio", 5);
+        int hourlyForcedMinutes = plugin.getConfig().getInt("pvp-force-timer.hourly-forced-minutes", 20);
+        long maxDebtSeconds = plugin.getConfig().getInt("pvp-force-timer.max-debt", 60) * 60L;
+        long minForcedSeconds = plugin.getConfig().getInt("pvp-force-timer.minimum-forced-duration", 20) * 60L;
+        boolean exemptManualPvp = plugin.getConfig().getBoolean("pvp-force-timer.exemptions.manual-pvp", true);
+        boolean exemptForcedZones = plugin.getConfig().getBoolean("pvp-force-timer.exemptions.forced-zones", true);
+        boolean exemptSolo = plugin.getConfig().getBoolean("pvp-force-timer.exemptions.solo-server", true);
+        boolean soloAccumulate = plugin.getConfig().getBoolean("pvp-force-timer.exemptions.solo-accumulate", true);
+
+        boolean currentlyForced = data.getPvpDebtSeconds() > 0;
+        boolean isSolo = exemptSolo && onlineCount < 2;
+
+        // ── Phase 1: debt accumulation ──
+        if (!currentlyForced) {
+            boolean exempt = false;
+
+            // Solo server exemption (only blocks accumulation if solo-accumulate is false)
+            if (isSolo && !soloAccumulate) {
+                exempt = true;
+                if (debug) {
+                    plugin.getLogger().log(Level.INFO,
+                            "[DEBUG] {0}: exempt from debt — solo server (accumulation paused)", player.getName());
+                }
+            }
+
+            // Manual PvP exemption
+            if (!exempt && exemptManualPvp && data.isPvpEnabled()) {
+                exempt = true;
+                if (debug) {
+                    plugin.getLogger().log(Level.INFO,
+                            "[DEBUG] {0}: exempt from debt — manual PvP on", player.getName());
+                }
+            }
+
+            // Forced zone exemption
+            if (!exempt && exemptForcedZones
+                    && plugin.getZoneManager().isInForcedPvPZone(player.getLocation())) {
+                exempt = true;
+                if (debug) {
+                    plugin.getLogger().log(Level.INFO,
+                            "[DEBUG] {0}: exempt from debt — in forced PvP zone", player.getName());
+                }
+            }
+
+            // Hourly mode: always keep processedCycles in sync with total playtime,
+            // even when exempt, so debt doesn't burst-accumulate retroactively
+            // when the exemption lifts (e.g. another player joins a solo server).
+            if ("hourly".equalsIgnoreCase(ratioMode)) {
+                long cycleSeconds = 3600L; // 1 hour
+                int currentCycles = (int) (data.getTotalPlaytimeSeconds() / cycleSeconds);
+                if (currentCycles > data.getProcessedCycles()) {
+                    int newCycles = currentCycles - data.getProcessedCycles();
+                    data.setProcessedCycles(currentCycles);
+
+                    if (!exempt) {
+                        long earnedDebt = newCycles * hourlyForcedMinutes * 60L;
+                        long newDebt = data.getPvpDebtSeconds() + earnedDebt;
+                        // Only cap debt when not solo — solo accumulation ignores the limit
+                        if (!isSolo) {
+                            newDebt = Math.min(newDebt, maxDebtSeconds);
+                        }
+                        data.setPvpDebtSeconds(newDebt);
+
+                        if (debug) {
+                            plugin.getLogger().log(Level.INFO,
+                                    "[DEBUG] {0}: hourly cycle +{1}s debt (total {2}s, cap {3}s)",
+                                    new Object[]{player.getName(), earnedDebt,
+                                            data.getPvpDebtSeconds(), maxDebtSeconds});
+                        }
+                    } else if (debug) {
+                        plugin.getLogger().log(Level.INFO,
+                                "[DEBUG] {0}: hourly cycle crossed but exempt — no debt added ({1} cycles skipped)",
+                                new Object[]{player.getName(), newCycles});
+                    }
+                }
+            }
+
+            if (!exempt) {
+                if (!"hourly".equalsIgnoreCase(ratioMode)) {
+                    // Debt mode: accumulate PvP-off time and convert to debt
+                    data.setPvpOffAccumulator(data.getPvpOffAccumulator() + 1);
+
+                    long ratioSeconds = debtRatio * 60L; // ratio is in minutes
+                    if (data.getPvpOffAccumulator() >= ratioSeconds) {
+                        long earnedDebt = 60L; // 1 minute of debt per ratio-block
+                        long newDebt = data.getPvpDebtSeconds() + earnedDebt;
+                        // Only cap debt when not solo — solo accumulation ignores the limit
+                        if (!isSolo) {
+                            newDebt = Math.min(newDebt, maxDebtSeconds);
+                        }
+                        data.setPvpDebtSeconds(newDebt);
+                        data.setPvpOffAccumulator(data.getPvpOffAccumulator() - ratioSeconds);
+
+                        if (debug) {
+                            plugin.getLogger().log(Level.INFO,
+                                    "[DEBUG] {0}: +{1}s debt (total {2}s, cap {3}s)",
+                                    new Object[]{player.getName(), earnedDebt,
+                                            data.getPvpDebtSeconds(), maxDebtSeconds});
+                        }
+                    }
+                }
+
+                // Debt just transitioned from 0 to positive this tick — start forced block
+                // But don't activate if solo (even when solo-accumulate is on)
+                if (!currentlyForced && data.getPvpDebtSeconds() > 0 && !isSolo) {
+                    // Enforce minimum forced duration: bump debt up if below minimum
+                    if (data.getPvpDebtSeconds() < minForcedSeconds) {
+                        data.setPvpDebtSeconds(minForcedSeconds);
+                    }
+                    data.setForcedPvpElapsed(0);
+                    MessageUtil.send(player,
+                            "&c&l⚔ Forced PvP activated! &7Duration: &f"
+                                    + MessageUtil.formatTime(data.getPvpDebtSeconds()));
+                }
+            }
+        }
+
+        // ── Phase 2: debt payoff ──
+        if (data.getPvpDebtSeconds() > 0) {
+            // Solo server exemption — pause debt countdown when alone
+            if (isSolo) {
+                MessageUtil.sendActionBar(player,
+                        "&e⚔ Forced PvP &7(paused — solo) &7| &f"
+                                + MessageUtil.formatTime(data.getPvpDebtSeconds()) + " &7remaining");
+                return;
+            }
+
+            data.setPvpDebtSeconds(data.getPvpDebtSeconds() - 1);
+            data.setForcedPvpElapsed(data.getForcedPvpElapsed() + 1);
+
+            if (data.getPvpDebtSeconds() <= 0) {
+                // Forced period ended
+                data.setPvpDebtSeconds(0);
+                data.setForcedPvpElapsed(0);
+                data.setPvpOffAccumulator(0);
+                MessageUtil.send(player, "&a&l⚔ Your forced PvP period has ended!");
+                MessageUtil.sendActionBar(player, "&a✓ Forced PvP ended");
+
+                if (debug) {
+                    plugin.getLogger().log(Level.INFO,
+                            "[DEBUG] {0}: forced PvP period ended", player.getName());
+                }
+            } else {
+                MessageUtil.sendActionBar(player,
+                        "&c⚔ Forced PvP &7| &f"
+                                + MessageUtil.formatTime(data.getPvpDebtSeconds())
+                                + " &7remaining");
+            }
+        }
+    }
+
+    // ─── Legacy cycle-based mode ─────────────────────────────────────────
 
     private void checkCycleMilestones(Player player, PlayerData data, long cycleSeconds, int forcedMinutes) {
         int currentCycles = (int) (data.getTotalPlaytimeSeconds() / cycleSeconds);
@@ -74,7 +243,7 @@ public class PlaytimeManager {
         }
     }
 
-    private void tickDebt(Player player, PlayerData data, int onlineCount) {
+    private void tickDebtLegacy(Player player, PlayerData data, int onlineCount) {
         if (data.getPvpDebtSeconds() <= 0 || player.hasPermission("pvptoggle.bypass")) return;
 
         if (onlineCount >= 2) {

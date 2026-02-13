@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -52,6 +53,14 @@ public class PvPManager {
         boolean inZone = plugin.getZoneManager().isInForcedPvPZone(player.getLocation());
         boolean hasDebt = data.getPvpDebtSeconds() > 0 && !player.hasPermission("pvptoggle.bypass");
 
+        // Solo server exemption: debt shouldn't force PvP when alone
+        if (hasDebt
+                && plugin.getConfig().getBoolean("pvp-force-timer.enabled", false)
+                && plugin.getConfig().getBoolean("pvp-force-timer.exemptions.solo-server", true)
+                && Bukkit.getOnlinePlayers().size() < 2) {
+            hasDebt = false;
+        }
+
         if (plugin.getConfig().getBoolean("debug", false)) {
             plugin.getLogger().log(Level.INFO, "[DEBUG] PvP check for {0}: toggle={1}, inZone={2}, hasDebt={3}",
                     new Object[]{player.getName(), toggle, inZone, hasDebt});
@@ -63,7 +72,16 @@ public class PvPManager {
     public boolean isForcedPvP(Player player) {
         if (plugin.getZoneManager().isInForcedPvPZone(player.getLocation())) return true;
         PlayerData data = getPlayerData(player.getUniqueId());
-        return data.getPvpDebtSeconds() > 0 && !player.hasPermission("pvptoggle.bypass");
+        if (data.getPvpDebtSeconds() > 0 && !player.hasPermission("pvptoggle.bypass")) {
+            // Solo server exemption — don't enforce forced PvP when alone
+            if (plugin.getConfig().getBoolean("pvp-force-timer.enabled", false)
+                    && plugin.getConfig().getBoolean("pvp-force-timer.exemptions.solo-server", true)
+                    && Bukkit.getOnlinePlayers().size() < 2) {
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 
     // playerdata.yml i/o
@@ -87,6 +105,8 @@ public class PvPManager {
                 data.setTotalPlaytimeSeconds(s.getLong("total-playtime-seconds", 0));
                 data.setProcessedCycles(s.getInt("processed-cycles", 0));
                 data.setPvpDebtSeconds(s.getLong("pvp-debt-seconds", 0));
+                data.setPvpOffAccumulator(s.getLong("pvp-off-accumulator", 0));
+                data.setForcedPvpElapsed(s.getLong("forced-pvp-elapsed", 0));
                 playerDataMap.put(uuid, data);
             } catch (IllegalArgumentException e) {
                 plugin.getLogger().log(Level.WARNING,
@@ -105,6 +125,8 @@ public class PvPManager {
             config.set(path + ".total-playtime-seconds", d.getTotalPlaytimeSeconds());
             config.set(path + ".processed-cycles",       d.getProcessedCycles());
             config.set(path + ".pvp-debt-seconds",       d.getPvpDebtSeconds());
+            config.set(path + ".pvp-off-accumulator",    d.getPvpOffAccumulator());
+            config.set(path + ".forced-pvp-elapsed",     d.getForcedPvpElapsed());
         }
         try {
             config.save(new File(plugin.getDataFolder(), "playerdata.yml"));
