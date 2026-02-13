@@ -81,19 +81,21 @@ public class PlaytimeManager {
         boolean exemptManualPvp = plugin.getConfig().getBoolean("pvp-force-timer.exemptions.manual-pvp", true);
         boolean exemptForcedZones = plugin.getConfig().getBoolean("pvp-force-timer.exemptions.forced-zones", true);
         boolean exemptSolo = plugin.getConfig().getBoolean("pvp-force-timer.exemptions.solo-server", true);
+        boolean soloAccumulate = plugin.getConfig().getBoolean("pvp-force-timer.exemptions.solo-accumulate", true);
 
         boolean currentlyForced = data.getPvpDebtSeconds() > 0;
+        boolean isSolo = exemptSolo && onlineCount < 2;
 
         // ── Phase 1: debt accumulation ──
         if (!currentlyForced) {
             boolean exempt = false;
 
-            // Solo server exemption
-            if (exemptSolo && onlineCount < 2) {
+            // Solo server exemption (only blocks accumulation if solo-accumulate is false)
+            if (isSolo && !soloAccumulate) {
                 exempt = true;
                 if (debug) {
                     plugin.getLogger().log(Level.INFO,
-                            "[DEBUG] {0}: exempt from debt — solo server", player.getName());
+                            "[DEBUG] {0}: exempt from debt — solo server (accumulation paused)", player.getName());
                 }
             }
 
@@ -167,7 +169,8 @@ public class PlaytimeManager {
                 }
 
                 // Debt just transitioned from 0 to positive this tick — start forced block
-                if (!currentlyForced && data.getPvpDebtSeconds() > 0) {
+                // But don't activate if solo (even when solo-accumulate is on)
+                if (!currentlyForced && data.getPvpDebtSeconds() > 0 && !isSolo) {
                     // Enforce minimum forced duration: bump debt up if below minimum
                     if (data.getPvpDebtSeconds() < minForcedSeconds) {
                         data.setPvpDebtSeconds(minForcedSeconds);
@@ -183,7 +186,7 @@ public class PlaytimeManager {
         // ── Phase 2: debt payoff ──
         if (data.getPvpDebtSeconds() > 0) {
             // Solo server exemption — pause debt countdown when alone
-            if (exemptSolo && onlineCount < 2) {
+            if (isSolo) {
                 MessageUtil.sendActionBar(player,
                         "&e⚔ Forced PvP &7(paused — solo) &7| &f"
                                 + MessageUtil.formatTime(data.getPvpDebtSeconds()) + " &7remaining");

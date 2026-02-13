@@ -46,12 +46,15 @@ pvp-force-timer:
     manual-pvp: true
     # Don't accumulate debt when in a forced PvP zone
     forced-zones: true
-    # Don't accumulate debt or activate forced PvP when alone on the server.
-    # Debt mode:  PvP-off time doesn't count while solo, so debt doesn't ramp up.
-    # Hourly mode: hour-cycles are consumed without generating debt while solo,
-    #              so no retroactive burst of debt when someone joins.
-    # Both modes:  forced-PvP countdown pauses while solo (timer freezes).
+    # Don't activate forced PvP when alone on the server.
+    # If true, forced PvP will not activate and the countdown pauses while solo.
     solo-server: true
+    # Allow debt to keep building up while solo.
+    # If true, debt accumulates even when alone — but forced PvP only activates
+    # once another player joins. If false, debt does not accumulate while solo.
+    # Only relevant when solo-server is true. When solo-server is false, debt
+    # always accumulates regardless of this setting.
+    solo-accumulate: true
 
 # Zone wand material (any valid Bukkit Material name)
 zone-wand-material: BLAZE_ROD
