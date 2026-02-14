@@ -15,9 +15,18 @@ import com.pvptoggle.util.MessageUtil;
 public class CombatListener implements Listener {
 
     private final PvPTogglePlugin plugin;
+    private boolean debugEnabled; // Cached debug flag
 
     public CombatListener(PvPTogglePlugin plugin) {
         this.plugin = plugin;
+        loadConfig();
+    }
+    
+    /**
+     * Load and cache config values (called on plugin enable and reload)
+     */
+    public void loadConfig() {
+        this.debugEnabled = plugin.getConfig().getBoolean("debug", false);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -28,7 +37,7 @@ public class CombatListener implements Listener {
         if (attacker == null) return;
         if (attacker.equals(victim)) return;
 
-        if (plugin.getConfig().getBoolean("debug", false)) {
+        if (debugEnabled) {
             plugin.getLogger().log(java.util.logging.Level.INFO, "[DEBUG] Combat: {0} -> {1} | damager type: {2}",
                     new Object[]{attacker.getName(), victim.getName(), event.getDamager().getType()});
         }
@@ -36,7 +45,7 @@ public class CombatListener implements Listener {
         boolean attackerPvP = plugin.getPvPManager().isEffectivePvPEnabled(attacker);
         boolean victimPvP   = plugin.getPvPManager().isEffectivePvPEnabled(victim);
 
-        if (plugin.getConfig().getBoolean("debug", false)) {
+        if (debugEnabled) {
             plugin.getLogger().log(java.util.logging.Level.INFO, "[DEBUG] Result: attackerPvP={0}, victimPvP={1}",
                     new Object[]{attackerPvP, victimPvP});
         }

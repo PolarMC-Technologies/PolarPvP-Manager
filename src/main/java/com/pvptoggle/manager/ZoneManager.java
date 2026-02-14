@@ -9,8 +9,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
@@ -24,9 +26,27 @@ public class ZoneManager {
     private final PvPTogglePlugin plugin;
     private final Map<String, PvPZone> zones = new LinkedHashMap<>();      // key = lowercase name
     private final Map<UUID, Location[]> selections = new HashMap<>();      // [0]=pos1, [1]=pos2
+    
+    // Cache for zone lookups (location hash -> boolean)
+    private final Map<String, Boolean> zoneCache = new ConcurrentHashMap<>();
+    private static final int MAX_CACHE_SIZE = 10000;
 
     public ZoneManager(PvPTogglePlugin plugin) {
         this.plugin = plugin;
+    }
+    
+    /**
+     * Clear the zone cache (called when zones are modified)
+     */
+    private void clearZoneCache() {
+        zoneCache.clear();
+    }
+    
+    /**
+     * Generate a cache key for a location
+     */
+    private String getLocationCacheKey(Location loc) {
+        return loc.getWorld().getName() + ":" + loc.getBlockX() + ":" + loc.getBlockY() + ":" + loc.getBlockZ();
     }
 
     // set wand selection
@@ -51,13 +71,15 @@ public class ZoneManager {
                 sel[0].getBlockX(), sel[0].getBlockY(), sel[0].getBlockZ(),
                 sel[1].getBlockX(), sel[1].getBlockY(), sel[1].getBlockZ()));
         zones.put(name.toLowerCase(), zone);
-        saveZones();
+        clearZoneCache(); // Clear cache when zones change
+        saveZonesAsync();
         return true;
     }
 
     public boolean deleteZone(String name) {
         if (zones.remove(name.toLowerCase()) != null) {
-            saveZones();
+            clearZoneCache(); // Clear cache when zones change
+            saveZonesAsync();
             return true;
         }
         return false;
@@ -77,10 +99,29 @@ public class ZoneManager {
 
     public boolean isInForcedPvPZone(Location location) {
         if (location == null) return false;
-        for (PvPZone zone : zones.values()) {
-            if (zone.contains(location)) return true;
+        
+        // Check cache first
+        String cacheKey = getLocationCacheKey(location);
+        Boolean cached = zoneCache.get(cacheKey);
+        if (cached != null) {
+            return cached;
         }
-        return false;
+        
+        // Not in cache, check all zones
+        boolean inZone = false;
+        for (PvPZone zone : zones.values()) {
+            if (zone.contains(location)) {
+                inZone = true;
+                break;
+            }
+        }
+        
+        // Cache the result (with size limit to prevent memory issues)
+        if (zoneCache.size() < MAX_CACHE_SIZE) {
+            zoneCache.put(cacheKey, inZone);
+        }
+        
+        return inZone;
     }
 
     // zones.yml i/o
@@ -126,5 +167,12 @@ public class ZoneManager {
         } catch (IOException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to save zones", e);
         }
+    }
+    
+    /**
+     * Save zones asynchronously to prevent blocking the main thread
+     */
+    private void saveZonesAsync() {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, this::saveZones);
     }
 }
