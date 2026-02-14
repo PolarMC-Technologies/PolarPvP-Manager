@@ -20,6 +20,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import com.pvptoggle.PvPTogglePlugin;
 import com.pvptoggle.model.PlayerData;
 import com.pvptoggle.model.PvPZone;
+import com.pvptoggle.util.CommandUtil;
+import com.pvptoggle.util.ConfigUtil;
 import com.pvptoggle.util.MessageUtil;
 
 // /pvpadmin wand | zone create/delete/list/info | player <name> info/reset/setdebt | reload
@@ -54,18 +56,10 @@ public class PvPAdminCommand implements TabExecutor {
     }
 
     private void handleWand(CommandSender sender) {
-        if (!(sender instanceof Player player)) {
-            MessageUtil.send(sender, PLAYERS_ONLY);
-            return;
-        }
+        Player player = CommandUtil.requirePlayer(sender, PLAYERS_ONLY);
+        if (player == null) return;
 
-        Material wandMat;
-        try {
-            String matConfig = plugin.getConfig().getString("zone-wand-material");
-            wandMat = Material.valueOf((matConfig != null ? matConfig : "BLAZE_ROD").toUpperCase());
-        } catch (IllegalArgumentException e) {
-            wandMat = Material.BLAZE_ROD;
-        }
+        Material wandMat = ConfigUtil.getWandMaterial(plugin.getConfig());
 
         ItemStack wand = new ItemStack(wandMat);
         ItemMeta meta = wand.getItemMeta();
@@ -101,10 +95,8 @@ public class PvPAdminCommand implements TabExecutor {
             MessageUtil.send(sender, "&cUsage: /pvpadmin zone create <name>");
             return;
         }
-        if (!(sender instanceof Player player)) {
-            MessageUtil.send(sender, PLAYERS_ONLY);
-            return;
-        }
+        Player player = CommandUtil.requirePlayer(sender, PLAYERS_ONLY);
+        if (player == null) return;
         String name = args[2];
         if (plugin.getZoneManager().getZone(name) != null) {
             MessageUtil.send(player, "&cA zone named '&f" + name + "&c' already exists.");
@@ -137,8 +129,8 @@ public class PvPAdminCommand implements TabExecutor {
             return;
         }
         MessageUtil.send(sender, "&6&l══════ PvP Zones ══════");
-        for (PvPZone z : zones) {
-            MessageUtil.send(sender, "&7 • &f" + z.getName() + " &7(" + z.getWorldName() + ")");
+        for (PvPZone zone : zones) {
+            MessageUtil.send(sender, "&7 • &f" + zone.getName() + " &7(" + zone.getWorldName() + ")");
         }
     }
 
@@ -147,15 +139,15 @@ public class PvPAdminCommand implements TabExecutor {
             MessageUtil.send(sender, "&cUsage: /pvpadmin zone info <name>");
             return;
         }
-        PvPZone z = plugin.getZoneManager().getZone(args[2]);
-        if (z == null) {
+        PvPZone zone = plugin.getZoneManager().getZone(args[2]);
+        if (zone == null) {
             MessageUtil.send(sender, "&cZone '&f" + args[2] + "&c' not found.");
             return;
         }
-        MessageUtil.send(sender, "&6&l══════ Zone: " + z.getName() + " ══════");
-        MessageUtil.send(sender, "&7World: &f" + z.getWorldName());
-        MessageUtil.send(sender, "&7Corner 1: &f(" + z.getX1() + ", " + z.getY1() + ", " + z.getZ1() + ")");
-        MessageUtil.send(sender, "&7Corner 2: &f(" + z.getX2() + ", " + z.getY2() + ", " + z.getZ2() + ")");
+        MessageUtil.send(sender, "&6&l══════ Zone: " + zone.getName() + " ══════");
+        MessageUtil.send(sender, "&7World: &f" + zone.getWorldName());
+        MessageUtil.send(sender, "&7Corner 1: &f(" + zone.getX1() + ", " + zone.getY1() + ", " + zone.getZ1() + ")");
+        MessageUtil.send(sender, "&7Corner 2: &f(" + zone.getX2() + ", " + zone.getY2() + ", " + zone.getZ2() + ")");
     }
 
     @SuppressWarnings("deprecation")
@@ -208,10 +200,8 @@ public class PvPAdminCommand implements TabExecutor {
 
     // temp test command - adds fake playtime so you don't have to wait an hour
     private void handleSimtime(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player player)) {
-            MessageUtil.send(sender, PLAYERS_ONLY);
-            return;
-        }
+        Player player = CommandUtil.requirePlayer(sender, PLAYERS_ONLY);
+        if (player == null) return;
         if (args.length < 2) {
             MessageUtil.send(sender, "&cUsage: /pvpadmin simtime <seconds>");
             return;
