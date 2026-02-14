@@ -20,6 +20,10 @@ public class PvPTogglePlugin extends JavaPlugin {
     private PvPManager pvpManager;
     private ZoneManager zoneManager;
     private PlaytimeManager playtimeManager;
+    
+    // Store listener references for config reloading
+    private CombatListener combatListener;
+    private ZoneListener zoneListener;
 
     @Override
     public void onEnable() {
@@ -42,9 +46,11 @@ public class PvPTogglePlugin extends JavaPlugin {
         zoneManager.loadZones();
 
         // listeners
-        getServer().getPluginManager().registerEvents(new CombatListener(this), this);
+        combatListener = new CombatListener(this);
+        zoneListener = new ZoneListener(this);
+        getServer().getPluginManager().registerEvents(combatListener, this);
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
-        getServer().getPluginManager().registerEvents(new ZoneListener(this), this);
+        getServer().getPluginManager().registerEvents(zoneListener, this);
 
         // commands
         PvPCommand pvpCmd = new PvPCommand(this);
@@ -68,10 +74,24 @@ public class PvPTogglePlugin extends JavaPlugin {
     public void onDisable() {
         if (playtimeManager != null) playtimeManager.stopTracking();
 
+        // Synchronous saves on shutdown to ensure data is persisted
+        // Async saves during normal operation, but shutdown requires completion
         if (pvpManager != null)  pvpManager.saveData();
         if (zoneManager != null) zoneManager.saveZones();
 
         getLogger().info("PvPToggle disabled, data saved.");
+    }
+    
+    /**
+     * Reload config and update all cached values
+     */
+    public void reloadPluginConfig() {
+        reloadConfig();
+        
+        // Reload cached config values in managers and listeners
+        if (playtimeManager != null) playtimeManager.loadConfigValues();
+        if (combatListener != null) combatListener.loadConfig();
+        if (zoneListener != null) zoneListener.loadConfig();
     }
 
     public PvPManager      getPvPManager()      { return pvpManager; }

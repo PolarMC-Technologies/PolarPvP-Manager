@@ -20,9 +20,25 @@ import com.pvptoggle.util.MessageUtil;
 public class ZoneListener implements Listener {
 
     private final PvPTogglePlugin plugin;
+    private Material wandMaterial; // Cached wand material
 
     public ZoneListener(PvPTogglePlugin plugin) {
         this.plugin = plugin;
+        loadConfig();
+    }
+    
+    /**
+     * Load and cache config values (called on plugin enable and reload)
+     */
+    public void loadConfig() {
+        try {
+            String matName = plugin.getConfig().getString("zone-wand-material");
+            if (matName == null) matName = "BLAZE_ROD";
+            this.wandMaterial = Material.valueOf(matName.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            // Bad material in config — fall back to BLAZE_ROD
+            this.wandMaterial = Material.BLAZE_ROD;
+        }
     }
 
     @EventHandler
@@ -81,14 +97,7 @@ public class ZoneListener implements Listener {
 
     private boolean isZoneWand(ItemStack item) {
         if (item == null || item.getType() == Material.AIR) return false;
-        try {
-            String matName = plugin.getConfig().getString("zone-wand-material");
-            if (matName == null) matName = "BLAZE_ROD";
-            if (item.getType() != Material.valueOf(matName.toUpperCase())) return false;
-        } catch (IllegalArgumentException e) {
-            // Bad material in config — fall back to BLAZE_ROD
-            if (item.getType() != Material.BLAZE_ROD) return false;
-        }
+        if (item.getType() != wandMaterial) return false;
         if (!item.hasItemMeta()) return false;
         ItemMeta meta = item.getItemMeta();
         if (meta == null || !meta.hasDisplayName()) return false;
