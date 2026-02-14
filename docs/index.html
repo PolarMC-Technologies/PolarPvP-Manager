@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PolarPvP-Manager - A comprehensive Minecraft PvP management plugin with zone control and playtime-based mechanics">
+    <title>PolarPvP-Manager Documentation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>PolarPvP-Manager</h1>
+            <p class="subtitle">Advanced PvP Management for Minecraft Servers</p>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#commands">Commands</a></li>
+                <li><a href="#zones">Zones</a></li>
+                <li><a href="#playtime">Playtime System</a></li>
+                <li><a href="#configuration">Configuration</a></li>
+                <li><a href="#support">Support</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>PolarPvP-Manager is a comprehensive Minecraft plugin that provides players with control over their PvP status while giving administrators powerful tools to enforce PvP in specific zones and through playtime-based mechanics.</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>Player Control</h3>
+                    <p>Simple commands allow players to toggle PvP on or off, giving them control over their combat experience.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Zone Management</h3>
+                    <p>Administrators can create forced PvP zones where combat is always enabled, perfect for arenas and special areas.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Playtime Debt</h3>
+                    <p>A sophisticated system that enforces periodic PvP based on player activity, preventing indefinite PvP avoidance.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Fully Customizable</h3>
+                    <p>Configure messages, timings, and behavior to match your server's unique needs.</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h3>Requirements</h3>
+                <ul>
+                    <li>Minecraft Server 1.20 or higher</li>
+                    <li>Java 17 or higher</li>
+                    <li>Compatible with Bukkit, Spigot, Paper, and Purpur</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="installation">
+            <h2>Installation</h2>
+            <ol class="numbered-list">
+                <li>Download the latest release JAR file from the GitHub repository</li>
+                <li>Place the JAR file in your server's <code>plugins/</code> directory</li>
+                <li>Start or restart your Minecraft server</li>
+                <li>The plugin will create a default configuration at <code>plugins/PolarPvP-Manager/config.yml</code></li>
+                <li>Customize the configuration as needed</li>
+                <li>Use <code>/pvpadmin reload</code> to apply changes without restarting</li>
+            </ol>
+        </section>
+
+        <section id="commands">
+            <h2>Commands</h2>
+            
+            <h3>Player Commands</h3>
+            <p>These commands are available to all players with the <code>pvptoggle.use</code> permission (enabled by default).</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Description</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/pvp on</code></td>
+                        <td>Enable your PvP status</td>
+                        <td><code>/pvp on</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>/pvp off</code></td>
+                        <td>Disable your PvP status</td>
+                        <td><code>/pvp off</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>/pvp status</code></td>
+                        <td>Check your current PvP status</td>
+                        <td><code>/pvp status</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Admin Commands</h3>
+            <p>These commands require the <code>pvptoggle.admin</code> permission (ops by default).</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Description</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/pvpadmin wand</code></td>
+                        <td>Get the zone selection wand</td>
+                        <td><code>/pvpadmin wand</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>/pvpadmin zone create &lt;name&gt;</code></td>
+                        <td>Create a forced PvP zone</td>
+                        <td><code>/pvpadmin zone create arena</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>/pvpadmin zone delete &lt;name&gt;</code></td>
+                        <td>Remove a forced PvP zone</td>
+                        <td><code>/pvpadmin zone delete arena</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>/pvpadmin zone list</code></td>
+                        <td>List all zones</td>
+                        <td><code>/pvpadmin zone list</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>/pvpadmin zone info &lt;name&gt;</code></td>
+                        <td>Display zone details</td>
+                        <td><code>/pvpadmin zone info arena</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>/pvpadmin player &lt;name&gt; info</code></td>
+                        <td>View player PvP information</td>
+                        <td><code>/pvpadmin player Steve info</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>/pvpadmin player &lt;name&gt; reset</code></td>
+                        <td>Reset player's PvP data</td>
+                        <td><code>/pvpadmin player Steve reset</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>/pvpadmin player &lt;name&gt; setdebt &lt;seconds&gt;</code></td>
+                        <td>Set player's forced PvP debt</td>
+                        <td><code>/pvpadmin player Steve setdebt 1200</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>/pvpadmin simtime &lt;seconds&gt;</code></td>
+                        <td>Simulate playtime for testing</td>
+                        <td><code>/pvpadmin simtime 3600</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>/pvpadmin reload</code></td>
+                        <td>Reload configuration</td>
+                        <td><code>/pvpadmin reload</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="zones">
+            <h2>Zone Management</h2>
+            <p>Forced PvP zones are defined areas where players cannot disable PvP, regardless of their personal setting. These are perfect for arenas, dungeons, or dedicated PvP areas.</p>
+
+            <h3>Creating Zones</h3>
+            <div class="step-box">
+                <h4>Step-by-Step Guide</h4>
+                <ol class="numbered-list">
+                    <li>Obtain the zone selection wand using <code>/pvpadmin wand</code></li>
+                    <li>The wand is a Blaze Rod by default (configurable in config.yml)</li>
+                    <li>Left-click one corner block of your desired zone</li>
+                    <li>Right-click the opposite corner block to complete the selection</li>
+                    <li>Both blocks must be in the same world</li>
+                    <li>Run <code>/pvpadmin zone create &lt;name&gt;</code> to create the zone</li>
+                </ol>
+            </div>
+
+            <div class="warning-box">
+                <strong>Important:</strong> Zone selection points must be in the same world. Cross-world zones are not supported.
+            </div>
+
+            <h3>Managing Zones</h3>
+            <ul>
+                <li><strong>List zones:</strong> <code>/pvpadmin zone list</code> displays all created zones</li>
+                <li><strong>View details:</strong> <code>/pvpadmin zone info &lt;name&gt;</code> shows zone boundaries and world</li>
+                <li><strong>Delete zones:</strong> <code>/pvpadmin zone delete &lt;name&gt;</code> permanently removes a zone</li>
+            </ul>
+        </section>
+
+        <section id="playtime">
+            <h2>Playtime Debt System</h2>
+            <p>The playtime debt system automatically enforces periods of mandatory PvP based on player activity. This prevents players from avoiding PvP indefinitely and encourages server engagement.</p>
+
+            <h3>How It Works</h3>
+            <div class="info-box">
+                <ol>
+                    <li>Players accumulate playtime as they play on the server</li>
+                    <li>After a configured number of hours (default: 1 hour), players enter a forced PvP period</li>
+                    <li>During forced PvP, players cannot disable their PvP status</li>
+                    <li>Forced PvP lasts for a configured duration (default: 20 minutes)</li>
+                    <li>Debt only counts down when 2 or more players are online</li>
+                    <li>Logging out does not reduce debt - it persists across sessions</li>
+                </ol>
+            </div>
+
+            <h3>Configuration</h3>
+            <p>Customize the playtime system in your <code>config.yml</code>:</p>
+            <pre><code>playtime:
+  hours-per-cycle: 1        # Hours of playtime to trigger forced PvP
+  forced-minutes: 20        # Minutes of forced PvP per cycle</code></pre>
+
+            <div class="tip-box">
+                <strong>Bypass Permission:</strong> Players with the <code>pvptoggle.bypass</code> permission (ops by default) are exempt from playtime debt.
+            </div>
+        </section>
+
+        <section id="configuration">
+            <h2>Configuration</h2>
+            <p>The plugin configuration is located at <code>plugins/PolarPvP-Manager/config.yml</code>. All settings can be modified and reloaded without restarting the server.</p>
+
+            <h3>Key Settings</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Setting</th>
+                        <th>Description</th>
+                        <th>Default Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>default-pvp-state</code></td>
+                        <td>Default PvP state for new players</td>
+                        <td><code>false</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>playtime.hours-per-cycle</code></td>
+                        <td>Hours between forced PvP periods</td>
+                        <td><code>1</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>playtime.forced-minutes</code></td>
+                        <td>Duration of forced PvP in minutes</td>
+                        <td><code>20</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>zone-wand-material</code></td>
+                        <td>Material for zone selection wand</td>
+                        <td><code>BLAZE_ROD</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>save-interval</code></td>
+                        <td>Auto-save interval in minutes</td>
+                        <td><code>5</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>debug</code></td>
+                        <td>Enable debug logging</td>
+                        <td><code>false</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Message Customization</h3>
+            <p>All messages can be customized in the config file. Use standard Minecraft color codes with the <code>&</code> symbol:</p>
+            <ul>
+                <li><code>&a</code> - Green</li>
+                <li><code>&c</code> - Red</li>
+                <li><code>&e</code> - Yellow</li>
+                <li><code>&7</code> - Gray</li>
+                <li><code>&l</code> - Bold</li>
+                <li><code>&o</code> - Italic</li>
+            </ul>
+
+            <h3>Data Storage</h3>
+            <p>The plugin stores data in YAML files within the plugin directory:</p>
+            <ul>
+                <li><code>playerdata.yml</code> - Player PvP states, playtime, and debt information</li>
+                <li><code>zones.yml</code> - Zone definitions and boundaries</li>
+            </ul>
+            <p>Data is automatically saved at regular intervals and when the server shuts down.</p>
+        </section>
+
+        <section id="permissions">
+            <h2>Permissions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Permission</th>
+                        <th>Description</th>
+                        <th>Default</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>pvptoggle.use</code></td>
+                        <td>Allows using /pvp commands</td>
+                        <td>All players</td>
+                    </tr>
+                    <tr>
+                        <td><code>pvptoggle.admin</code></td>
+                        <td>Allows using /pvpadmin commands</td>
+                        <td>Operators</td>
+                    </tr>
+                    <tr>
+                        <td><code>pvptoggle.bypass</code></td>
+                        <td>Bypass forced PvP from playtime debt</td>
+                        <td>Operators</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="troubleshooting">
+            <h2>Troubleshooting</h2>
+            
+            <h3>Common Issues</h3>
+            
+            <div class="faq-item">
+                <h4>PvP toggle not working</h4>
+                <ul>
+                    <li>Verify the player has the <code>pvptoggle.use</code> permission</li>
+                    <li>Check if the player is in a forced PvP zone</li>
+                    <li>Check if the player has active playtime debt</li>
+                    <li>Review configuration settings</li>
+                </ul>
+            </div>
+
+            <div class="faq-item">
+                <h4>Plugin not loading</h4>
+                <ul>
+                    <li>Ensure you are running Java 17 or higher</li>
+                    <li>Check for error messages in the server console</li>
+                    <li>Verify the plugin JAR is in the correct plugins directory</li>
+                </ul>
+            </div>
+
+            <div class="faq-item">
+                <h4>Zones not saving</h4>
+                <ul>
+                    <li>Verify file permissions on the plugin data directory</li>
+                    <li>Check server logs for permission errors</li>
+                    <li>Ensure both zone corners are in the same world</li>
+                </ul>
+            </div>
+
+            <h3>Debug Mode</h3>
+            <p>Enable debug logging to troubleshoot issues:</p>
+            <ol class="numbered-list">
+                <li>Open <code>config.yml</code></li>
+                <li>Set <code>debug: true</code></li>
+                <li>Save the file</li>
+                <li>Reload the plugin with <code>/pvpadmin reload</code></li>
+                <li>Check console logs for detailed information</li>
+            </ol>
+        </section>
+
+        <section id="building">
+            <h2>Building from Source</h2>
+            <p>If you want to build the plugin from source code:</p>
+            
+            <h3>Requirements</h3>
+            <ul>
+                <li>Maven 3.6 or higher</li>
+                <li>Java 17 or higher</li>
+                <li>Git</li>
+            </ul>
+
+            <h3>Build Instructions</h3>
+            <pre><code># Clone the repository
+git clone https://github.com/SSoggyTacoBlud/PolarPvP-Manager.git
+cd PolarPvP-Manager
+
+# Build with Maven
+mvn clean package
+
+# The compiled JAR will be in target/PolarPvP-Manager-1.0.0.jar</code></pre>
+        </section>
+
+        <section id="support">
+            <h2>Support</h2>
+            <p>Need help or found a bug?</p>
+            <ul>
+                <li><strong>GitHub Issues:</strong> Report bugs or request features on the <a href="https://github.com/SSoggyTacoBlud/PolarPvP-Manager/issues" target="_blank">GitHub repository</a></li>
+                <li><strong>Documentation:</strong> You're already here! Bookmark this page for reference</li>
+            </ul>
+
+            <div class="info-box">
+                <h3>Contributing</h3>
+                <p>Contributions are welcome! Feel free to submit pull requests or open issues on GitHub.</p>
+            </div>
+        </section>
+
+        <section id="license">
+            <h2>License</h2>
+            <p>This plugin is licensed under the GNU General Public License v3.0 (GPL-3.0). You are free to use, modify, and distribute this plugin according to the terms of the license.</p>
+            <p>See the <a href="https://github.com/SSoggyTacoBlud/PolarPvP-Manager/blob/main/LICENSE" target="_blank">LICENSE file</a> for the full license text.</p>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 PolarPvP-Manager. Licensed under GPL-3.0.</p>
+            <p><a href="https://github.com/SSoggyTacoBlud/PolarPvP-Manager" target="_blank">View on GitHub</a></p>
+        </div>
+    </footer>
+</body>
+</html>
