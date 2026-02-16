@@ -71,10 +71,13 @@ public class PlaytimeManager {
     }
     
     /**
-     * Clean up action bar tracking for a player (called when they disconnect)
+     * Clean up action bar tracking for a player (called when they disconnect).
+     * No longer performs any operation as throttling has been removed.
+     * @deprecated No longer needed but retained for backward compatibility
      */
+    @Deprecated
     public void cleanupPlayer(UUID playerId) {
-        // Method retained for API compatibility but no longer needed
+        // No-op: throttling removed since task already runs at 1-second intervals
     }
 
     private void updatePlayerTimesAndDebt() {
