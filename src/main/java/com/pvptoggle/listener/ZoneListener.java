@@ -140,18 +140,16 @@ public class ZoneListener implements Listener {
         }
         
         // Atomic check-and-update to avoid race conditions
-        // We use a boolean array as a mutable container to capture the result
-        final boolean[] shouldSend = new boolean[1];
+        final java.util.concurrent.atomic.AtomicBoolean shouldSend = new java.util.concurrent.atomic.AtomicBoolean(false);
         cooldownMap.compute(playerId, (id, lastTime) -> {
             if (lastTime == null || (currentTime - lastTime) >= cooldownMillis) {
-                shouldSend[0] = true;
+                shouldSend.set(true);
                 return currentTime; // Update the timestamp
             }
-            shouldSend[0] = false;
             return lastTime; // Keep the old timestamp
         });
         
-        return shouldSend[0];
+        return shouldSend.get();
     }
 
     private boolean isZoneWand(ItemStack item) {
