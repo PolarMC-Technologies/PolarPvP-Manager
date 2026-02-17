@@ -191,7 +191,13 @@ public class ZoneManager {
     }
     
     /**
-     * Save zones asynchronously to prevent blocking the main thread
+     * Save zones asynchronously to prevent blocking the main thread.
+     * 
+     * This method uses a snapshot approach for eventual consistency:
+     * - A consistent snapshot is taken under lock to prevent ConcurrentModificationException
+     * - The snapshot is written to disk without holding the lock to avoid blocking mutations
+     * - Mutations that occur after snapshot but before write completes will be saved on next save
+     * - This trade-off is acceptable for zone data which changes infrequently
      */
     private void saveZonesAsync() {
         // Snapshot zones under synchronization to prevent ConcurrentModificationException
@@ -203,7 +209,11 @@ public class ZoneManager {
     }
     
     /**
-     * Save a snapshot of zones to disk
+     * Save a snapshot of zones to disk.
+     * 
+     * Note: This operates on a point-in-time snapshot without holding locks during I/O.
+     * Any mutations that occur after the snapshot was taken will not be reflected in this write,
+     * but will be captured by the next save operation (eventual consistency).
      */
     private void saveZonesSnapshot(Map<String, PvPZone> zoneSnapshot) {
         YamlConfiguration config = new YamlConfiguration();
