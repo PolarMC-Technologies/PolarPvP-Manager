@@ -20,7 +20,7 @@ public class UpdateChecker implements Listener {
             "https://api.github.com/repos/PolarMC-Technologies/PolarPvP-Manager/releases/latest";
 
     private final PvPTogglePlugin plugin;
-    private String latestVersion = null;
+    private volatile String latestVersion = null;
 
     public UpdateChecker(PvPTogglePlugin plugin) {
         this.plugin = plugin;
@@ -28,8 +28,9 @@ public class UpdateChecker implements Listener {
 
     public void check() {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            HttpURLConnection connection = null;
             try {
-                HttpURLConnection connection = (HttpURLConnection) URI.create(GITHUB_API).toURL().openConnection();
+                connection = (HttpURLConnection) URI.create(GITHUB_API).toURL().openConnection();
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
                 connection.setConnectTimeout(5000);
@@ -60,6 +61,10 @@ public class UpdateChecker implements Listener {
                 }
             } catch (java.io.IOException e) {
                 plugin.getLogger().log(Level.FINE, "Update check failed", e);
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
             }
         });
     }

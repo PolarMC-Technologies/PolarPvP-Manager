@@ -133,7 +133,7 @@ public class ZoneListener implements Listener {
     }
 
     private boolean isCooldownReady(Map<UUID, Long> cooldownMap, UUID playerId, long cooldownMillis, long currentTime) {
-        if (cooldownMillis == 0) return true;
+        if (cooldownMillis == 0) return true; // Early return when cooldown is disabled
         Long lastTime = cooldownMap.get(playerId);
         if (lastTime == null || (currentTime - lastTime) >= cooldownMillis) {
             cooldownMap.put(playerId, currentTime);
