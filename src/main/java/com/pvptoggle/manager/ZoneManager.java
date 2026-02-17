@@ -31,7 +31,7 @@ public class ZoneManager {
         new LinkedHashMap<String, Boolean>(10000, 0.75f, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest) {
-                return size() >= 10000; // LRU eviction when cache reaches 10k entries
+                return size() > 10000; // LRU eviction when cache exceeds 10k entries
             }
         }
     );
@@ -121,13 +121,14 @@ public class ZoneManager {
 
     public Collection<PvPZone> getZones() {
         synchronized (saveLock) {
-            return new java.util.ArrayList<>(zones.values());
+            return Collections.unmodifiableCollection(new java.util.ArrayList<>(zones.values()));
         }
     }
 
     public Set<String> getZoneNames() {
         synchronized (saveLock) {
-            return new java.util.HashSet<>(zones.keySet());
+            return Collections.unmodifiableSet(
+                    new java.util.LinkedHashSet<>(zones.keySet()));
         }
     }
 
