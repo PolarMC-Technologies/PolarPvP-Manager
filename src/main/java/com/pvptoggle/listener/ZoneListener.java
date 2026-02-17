@@ -56,6 +56,21 @@ public class ZoneListener implements Listener {
                     + actionbarCooldownSeconds + "); using 0 instead.");
             actionbarCooldownSeconds = 0;
         }
+        
+        // Validate maximum values to prevent integer overflow (max ~24 days)
+        final int MAX_COOLDOWN_SECONDS = 2147483; // Integer.MAX_VALUE / 1000
+        if (chatCooldownSeconds > MAX_COOLDOWN_SECONDS) {
+            plugin.getLogger().warning("[PvPToggle] Value for 'zone-exit-cooldowns.chat' (" 
+                    + chatCooldownSeconds + ") exceeds maximum; using " + MAX_COOLDOWN_SECONDS + " instead.");
+            chatCooldownSeconds = MAX_COOLDOWN_SECONDS;
+        }
+        
+        if (actionbarCooldownSeconds > MAX_COOLDOWN_SECONDS) {
+            plugin.getLogger().warning("[PvPToggle] Value for 'zone-exit-cooldowns.actionbar' (" 
+                    + actionbarCooldownSeconds + ") exceeds maximum; using " + MAX_COOLDOWN_SECONDS + " instead.");
+            actionbarCooldownSeconds = MAX_COOLDOWN_SECONDS;
+        }
+        
         this.chatCooldownMillis = chatCooldownSeconds * 1000L;
         this.actionbarCooldownMillis = actionbarCooldownSeconds * 1000L;
     }
@@ -133,13 +148,21 @@ public class ZoneListener implements Listener {
     }
 
     private boolean isCooldownReady(Map<UUID, Long> cooldownMap, UUID playerId, long cooldownMillis, long currentTime) {
-        if (cooldownMillis == 0) return true; // Early return when cooldown is disabled
-        Long lastTime = cooldownMap.get(playerId);
-        if (lastTime == null || (currentTime - lastTime) >= cooldownMillis) {
-            cooldownMap.put(playerId, currentTime);
+        // Early return when cooldown is disabled to avoid unnecessary map operations
+        if (cooldownMillis == 0) {
             return true;
         }
-        return false;
+        
+        // Atomic check-and-update to avoid race conditions
+        Long previousTime = cooldownMap.compute(playerId, (id, lastTime) -> {
+            if (lastTime == null || (currentTime - lastTime) >= cooldownMillis) {
+                return currentTime; // Update the timestamp
+            }
+            return lastTime; // Keep the old timestamp
+        });
+        
+        // If compute returned currentTime, the cooldown was ready
+        return previousTime == null || (currentTime - previousTime) >= cooldownMillis;
     }
 
     private boolean isZoneWand(ItemStack item) {

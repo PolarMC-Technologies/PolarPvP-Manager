@@ -31,7 +31,7 @@ public class ZoneManager {
         new LinkedHashMap<String, Boolean>(10000, 0.75f, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest) {
-                return size() > 10000; // LRU eviction when cache exceeds 10k entries
+                return size() >= 10000; // LRU eviction when cache reaches 10k entries
             }
         }
     );
@@ -58,8 +58,10 @@ public class ZoneManager {
         if (world == null) {
             return "null:0:0:0"; // Fallback for null worlds
         }
-        return new StringBuilder(64)
-            .append(world.getName())
+        String worldName = world.getName();
+        // Pre-allocate capacity: world name + 3 colons + ~40 chars for coordinates
+        return new StringBuilder(worldName.length() + 43)
+            .append(worldName)
             .append(':')
             .append(loc.getBlockX())
             .append(':')
@@ -118,11 +120,15 @@ public class ZoneManager {
     }
 
     public Collection<PvPZone> getZones() {
-        return Collections.unmodifiableCollection(zones.values());
+        synchronized (saveLock) {
+            return new java.util.ArrayList<>(zones.values());
+        }
     }
 
     public Set<String> getZoneNames() {
-        return Collections.unmodifiableSet(zones.keySet());
+        synchronized (saveLock) {
+            return new java.util.HashSet<>(zones.keySet());
+        }
     }
 
     public boolean isInForcedPvPZone(Location location) {

@@ -30,7 +30,16 @@ public class PlaytimeManager {
      * Load and cache config values to avoid reading config 20x per second
      */
     public void loadConfigValues() {
-        this.cycleSeconds = plugin.getConfig().getInt("playtime.hours-per-cycle", 1) * 3600L;
+        int hoursPerCycle = plugin.getConfig().getInt("playtime.hours-per-cycle", 1);
+        
+        // Validate hours-per-cycle to prevent division by zero
+        if (hoursPerCycle <= 0) {
+            plugin.getLogger().warning("[PvPToggle] Invalid value for 'playtime.hours-per-cycle' (" 
+                    + hoursPerCycle + "); using 1 instead.");
+            hoursPerCycle = 1;
+        }
+        
+        this.cycleSeconds = hoursPerCycle * 3600L;
         this.forcedMinutes = plugin.getConfig().getInt("playtime.forced-minutes", 20);
     }
 
@@ -73,10 +82,10 @@ public class PlaytimeManager {
      * No longer performs any operation as throttling has been removed.
      * 
      * @param playerId the UUID of the player
-     * @deprecated since removal of action bar throttling; no replacement needed as
+     * @deprecated Since 1.0.0: removal of action bar throttling; no replacement needed as
      *             cleanup is no longer required. Safe to call but performs no operation.
      */
-    @Deprecated
+    @Deprecated(forRemoval = true, since = "1.0.0")
     public void cleanupPlayer(UUID playerId) {
         // No-op: throttling removed since task already runs at 1-second intervals
     }
