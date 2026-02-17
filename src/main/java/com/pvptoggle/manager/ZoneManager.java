@@ -135,9 +135,14 @@ public class ZoneManager {
             return cached;
         }
         
-        // Not in cache, check all zones
+        // Not in cache, check all zones with snapshot to avoid CME
+        Collection<PvPZone> zoneSnapshot;
+        synchronized (saveLock) {
+            zoneSnapshot = new java.util.ArrayList<>(zones.values());
+        }
+        
         boolean inZone = false;
-        for (PvPZone zone : zones.values()) {
+        for (PvPZone zone : zoneSnapshot) {
             if (zone.contains(location)) {
                 inZone = true;
                 break;
