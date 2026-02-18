@@ -59,7 +59,7 @@ public class ZoneManager {
             return "null:0:0:0"; // Fallback for null worlds
         }
         String worldName = world.getName();
-        // Pre-allocate capacity: world name + 3 colons + up to 30 chars for coordinates (3 * 9-char ints + signs)
+        // Pre-allocate capacity: world name plus delimiters and coordinates (30 extra chars for colons and coords)
         return new StringBuilder(worldName.length() + 30)
             .append(worldName)
             .append(':')
@@ -170,6 +170,9 @@ public class ZoneManager {
 
         int loadedCount;
         synchronized (saveLock) {
+            // Clear existing zones to remove any that were deleted from zones.yml
+            zones.clear();
+            
             for (String key : section.getKeys(false)) {
                 ConfigurationSection zoneSection = section.getConfigurationSection(key);
                 if (zoneSection == null) continue;
