@@ -1,5 +1,11 @@
 package com.pvptoggle.listener;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -10,19 +16,49 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.pvptoggle.PvPTogglePlugin;
+import com.pvptoggle.util.ConfigUtil;
 import com.pvptoggle.util.MessageUtil;
 
 public class ZoneListener implements Listener {
 
     private final PvPTogglePlugin plugin;
+    private final Map<UUID, Long> chatExitCooldowns = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> actionbarExitCooldowns = new ConcurrentHashMap<>();
+    private Material wandMaterial; // Cached wand material
+    private long chatCooldownMillis;
+    private long actionbarCooldownMillis;
 
     public ZoneListener(PvPTogglePlugin plugin) {
         this.plugin = plugin;
+        loadConfig();
+    }
+    
+    /**
+     * Load and cache config values (called on plugin enable and reload)
+     */
+    public void loadConfig() {
+        this.wandMaterial = ConfigUtil.getWandMaterial(plugin.getConfig());
+        int chatCooldownSeconds = plugin.getConfig().getInt("zone-exit-cooldowns.chat", 3);
+        int actionbarCooldownSeconds = plugin.getConfig().getInt("zone-exit-cooldowns.actionbar", 0);
+
+        if (chatCooldownSeconds < 0) {
+            plugin.getLogger().log(Level.WARNING, "[PvPToggle] Invalid negative value for ''zone-exit-cooldowns.chat'' ({0}); using 0 instead.", chatCooldownSeconds);
+            chatCooldownSeconds = 0;
+        }
+
+        if (actionbarCooldownSeconds < 0) {
+            plugin.getLogger().log(Level.WARNING, "[PvPToggle] Invalid negative value for ''zone-exit-cooldowns.actionbar'' ({0}); using 0 instead.", actionbarCooldownSeconds);
+            actionbarCooldownSeconds = 0;
+        }
+        
+        this.chatCooldownMillis = chatCooldownSeconds * 1000L;
+        this.actionbarCooldownMillis = actionbarCooldownSeconds * 1000L;
     }
 
     @EventHandler
@@ -75,20 +111,51 @@ public class ZoneListener implements Listener {
             MessageUtil.send(event.getPlayer(), "&c&l⚔ You entered a forced PvP zone!");
             MessageUtil.sendActionBar(event.getPlayer(), "&c&l⚔ FORCED PVP ZONE ⚔");
         } else if (wasInZone && !isInZone) {
-            MessageUtil.send(event.getPlayer(), "&a&l✓ You left the forced PvP zone.");
+            Player player = event.getPlayer();
+            UUID playerId = player.getUniqueId();
+            long currentTime = System.currentTimeMillis();
+            
+            if (isCooldownReady(chatExitCooldowns, playerId, chatCooldownMillis, currentTime)) {
+                MessageUtil.send(player, "&a&l✓ You left the forced PvP zone.");
+            }
+            
+            if (isCooldownReady(actionbarExitCooldowns, playerId, actionbarCooldownMillis, currentTime)) {
+                MessageUtil.sendActionBar(player, "&a&l✓ You left the forced PvP zone.");
+            }
         }
+    }
+    
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        // Clean up cooldown data when player leaves to prevent memory leak
+        UUID playerId = event.getPlayer().getUniqueId();
+        chatExitCooldowns.remove(playerId);
+        actionbarExitCooldowns.remove(playerId);
+    }
+
+    private boolean isCooldownReady(Map<UUID, Long> cooldownMap, UUID playerId, long cooldownMillis, long currentTime) {
+        // Early return when cooldown is disabled to avoid unnecessary map operations
+        if (cooldownMillis == 0) {
+            return true;
+        }
+        
+        // Use AtomicBoolean to capture whether the cooldown was ready inside the lambda
+        // This avoids false positives when lastTime equals currentTime from a previous call
+        final AtomicBoolean wasReady = new AtomicBoolean(false);
+        cooldownMap.compute(playerId, (id, lastTime) -> {
+            if (lastTime == null || (currentTime - lastTime) >= cooldownMillis) {
+                wasReady.set(true);
+                return currentTime; // Cooldown ready - update timestamp
+            }
+            return lastTime; // Cooldown not ready - keep old timestamp
+        });
+        
+        return wasReady.get();
     }
 
     private boolean isZoneWand(ItemStack item) {
         if (item == null || item.getType() == Material.AIR) return false;
-        try {
-            String matName = plugin.getConfig().getString("zone-wand-material");
-            if (matName == null) matName = "BLAZE_ROD";
-            if (item.getType() != Material.valueOf(matName.toUpperCase())) return false;
-        } catch (IllegalArgumentException e) {
-            // Bad material in config — fall back to BLAZE_ROD
-            if (item.getType() != Material.BLAZE_ROD) return false;
-        }
+        if (item.getType() != wandMaterial) return false;
         if (!item.hasItemMeta()) return false;
         ItemMeta meta = item.getItemMeta();
         if (meta == null || !meta.hasDisplayName()) return false;

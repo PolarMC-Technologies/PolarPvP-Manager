@@ -37,6 +37,11 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         // Persist immediately so the player can't dodge debt by leaving
-        plugin.getPvPManager().saveData();
+        // Uses async to prevent blocking the main thread during logout
+        // Note: If server shuts down immediately after quit, this may not complete.
+        // However, onDisable() performs a synchronous save to handle shutdown case.
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getPvPManager().saveData();
+        });
     }
 }

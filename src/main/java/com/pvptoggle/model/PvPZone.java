@@ -14,17 +14,17 @@ public class PvPZone {
     private final int y2;
     private final int z2;
 
-    public record Corners(int ax, int ay, int az, int bx, int by, int bz) {}
+    public record Corners(int x1, int y1, int z1, int x2, int y2, int z2) {}
 
     public PvPZone(String name, String worldName, Corners corners) {
         this.name = name;
         this.worldName = worldName;
-        this.x1 = Math.min(corners.ax(), corners.bx());
-        this.y1 = Math.min(corners.ay(), corners.by());
-        this.z1 = Math.min(corners.az(), corners.bz());
-        this.x2 = Math.max(corners.ax(), corners.bx());
-        this.y2 = Math.max(corners.ay(), corners.by());
-        this.z2 = Math.max(corners.az(), corners.bz());
+        this.x1 = Math.min(corners.x1(), corners.x2());
+        this.y1 = Math.min(corners.y1(), corners.y2());
+        this.z1 = Math.min(corners.z1(), corners.z2());
+        this.x2 = Math.max(corners.x1(), corners.x2());
+        this.y2 = Math.max(corners.y1(), corners.y2());
+        this.z2 = Math.max(corners.z1(), corners.z2());
     }
 
     public boolean contains(Location location) {

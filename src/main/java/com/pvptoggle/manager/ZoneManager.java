@@ -1,7 +1,5 @@
 package com.pvptoggle.manager;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
@@ -18,20 +17,63 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.pvptoggle.PvPTogglePlugin;
 import com.pvptoggle.model.PvPZone;
+import com.pvptoggle.util.YamlUtil;
 
 public class ZoneManager {
 
     private final PvPTogglePlugin plugin;
     private final Map<String, PvPZone> zones = new LinkedHashMap<>();      // key = lowercase name
     private final Map<UUID, Location[]> selections = new HashMap<>();      // [0]=pos1, [1]=pos2
+    
+    // LRU cache for zone lookups with automatic eviction
+    // Wrapped in synchronizedMap for thread-safety across all operations
+    private final Map<String, Boolean> zoneCache = Collections.synchronizedMap(
+        new LinkedHashMap<String, Boolean>(10000, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest) {
+                return size() > 10000; // LRU eviction when cache exceeds 10k entries
+            }
+        }
+    );
+    // Synchronize writes to zone file
+    private final Object saveLock = new Object();
 
     public ZoneManager(PvPTogglePlugin plugin) {
         this.plugin = plugin;
     }
+    
+    /**
+     * Clear the zone cache (called when zones are modified)
+     */
+    private void clearZoneCache() {
+        zoneCache.clear();
+    }
+    
+    /**
+     * Generate a cache key for a location
+     * Uses StringBuilder for performance as this is called frequently
+     */
+    private String getLocationCacheKey(Location loc) {
+        World world = loc.getWorld();
+        if (world == null) {
+            return "null:0:0:0"; // Fallback for null worlds
+        }
+        String worldName = world.getName();
+        // Pre-allocate capacity: world name plus delimiters and coordinates (30 extra chars for colons and coords)
+        return new StringBuilder(worldName.length() + 30)
+            .append(worldName)
+            .append(':')
+            .append(loc.getBlockX())
+            .append(':')
+            .append(loc.getBlockY())
+            .append(':')
+            .append(loc.getBlockZ())
+            .toString();
+    }
 
     // set wand selection
-    public void setPosition(UUID playerId, int idx, Location loc) {
-        selections.computeIfAbsent(playerId, k -> new Location[2])[idx] = loc.clone();
+    public void setPosition(UUID playerId, int positionIndex, Location loc) {
+        selections.computeIfAbsent(playerId, k -> new Location[2])[positionIndex] = loc.clone();
     }
 
     // get wand selection
@@ -40,24 +82,34 @@ public class ZoneManager {
     }
 
     public boolean createZone(String name, UUID playerUUID) {
-        Location[] sel = selections.get(playerUUID);
-        if (sel == null || sel[0] == null || sel[1] == null) return false;
-        World worldA = sel[0].getWorld();
-        World worldB = sel[1].getWorld();
+        Location[] selection = selections.get(playerUUID);
+        if (selection == null || selection[0] == null || selection[1] == null) return false;
+        World worldA = selection[0].getWorld();
+        World worldB = selection[1].getWorld();
         if (worldA == null || worldB == null) return false;
         if (!worldA.getName().equals(worldB.getName())) return false;
 
         PvPZone zone = new PvPZone(name, worldA.getName(), new PvPZone.Corners(
-                sel[0].getBlockX(), sel[0].getBlockY(), sel[0].getBlockZ(),
-                sel[1].getBlockX(), sel[1].getBlockY(), sel[1].getBlockZ()));
-        zones.put(name.toLowerCase(), zone);
-        saveZones();
+                selection[0].getBlockX(), selection[0].getBlockY(), selection[0].getBlockZ(),
+                selection[1].getBlockX(), selection[1].getBlockY(), selection[1].getBlockZ()));
+        synchronized (saveLock) {
+            zones.put(name.toLowerCase(), zone);
+            clearZoneCache(); // Clear cache when zones change
+        }
+        saveZonesAsync();
         return true;
     }
 
     public boolean deleteZone(String name) {
-        if (zones.remove(name.toLowerCase()) != null) {
-            saveZones();
+        boolean removed;
+        synchronized (saveLock) {
+            removed = zones.remove(name.toLowerCase()) != null;
+            if (removed) {
+                clearZoneCache(); // Clear cache when zones change
+            }
+        }
+        if (removed) {
+            saveZonesAsync();
             return true;
         }
         return false;
@@ -68,63 +120,136 @@ public class ZoneManager {
     }
 
     public Collection<PvPZone> getZones() {
-        return Collections.unmodifiableCollection(zones.values());
+        synchronized (saveLock) {
+            return Collections.unmodifiableCollection(new java.util.ArrayList<>(zones.values()));
+        }
     }
 
     public Set<String> getZoneNames() {
-        return Collections.unmodifiableSet(zones.keySet());
+        synchronized (saveLock) {
+            return Collections.unmodifiableSet(
+                    new java.util.LinkedHashSet<>(zones.keySet()));
+        }
     }
 
     public boolean isInForcedPvPZone(Location location) {
-        if (location == null) return false;
-        for (PvPZone zone : zones.values()) {
-            if (zone.contains(location)) return true;
+        if (location == null || location.getWorld() == null) return false;
+        
+        // Check cache first
+        String cacheKey = getLocationCacheKey(location);
+        Boolean cached = zoneCache.get(cacheKey);
+        if (cached != null) {
+            return cached;
         }
-        return false;
+        
+        // Not in cache, check all zones with snapshot to avoid CME
+        Collection<PvPZone> zoneSnapshot;
+        synchronized (saveLock) {
+            zoneSnapshot = new java.util.ArrayList<>(zones.values());
+        }
+        
+        boolean inZone = false;
+        for (PvPZone zone : zoneSnapshot) {
+            if (zone.contains(location)) {
+                inZone = true;
+                break;
+            }
+        }
+        
+        // Cache the result
+        zoneCache.put(cacheKey, inZone);
+        
+        return inZone;
     }
 
     // zones.yml i/o
 
     public void loadZones() {
-        File file = new File(plugin.getDataFolder(), "zones.yml");
-        if (!file.exists()) return;
-
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        ConfigurationSection section = config.getConfigurationSection("zones");
+        ConfigurationSection section = YamlUtil.loadSection(plugin.getDataFolder(), "zones.yml", "zones");
         if (section == null) return;
 
-        for (String key : section.getKeys(false)) {
-            ConfigurationSection s = section.getConfigurationSection(key);
-            if (s == null) continue;
-            zones.put(key.toLowerCase(), new PvPZone(
-                    s.getString("name", key),
-                    s.getString("world", "world"),
-                    new PvPZone.Corners(
-                            s.getInt("x1"), s.getInt("y1"), s.getInt("z1"),
-                            s.getInt("x2"), s.getInt("y2"), s.getInt("z2"))
-            ));
+        int loadedCount;
+        synchronized (saveLock) {
+            // Clear existing zones to remove any that were deleted from zones.yml
+            zones.clear();
+            
+            for (String key : section.getKeys(false)) {
+                ConfigurationSection zoneSection = section.getConfigurationSection(key);
+                if (zoneSection == null) continue;
+                zones.put(key.toLowerCase(), new PvPZone(
+                        zoneSection.getString("name", key),
+                        zoneSection.getString("world", "world"),
+                        new PvPZone.Corners(
+                                zoneSection.getInt("x1"), zoneSection.getInt("y1"), zoneSection.getInt("z1"),
+                                zoneSection.getInt("x2"), zoneSection.getInt("y2"), zoneSection.getInt("z2"))
+                ));
+            }
+            loadedCount = zones.size();
+            clearZoneCache(); // Clear cache when zones are reloaded
         }
-        plugin.getLogger().log(Level.INFO, "Loaded {0} PvP zone(s).", zones.size());
+        plugin.getLogger().log(Level.INFO, "Loaded {0} PvP zone(s).", loadedCount);
     }
 
     public void saveZones() {
+        synchronized (saveLock) {
+            YamlConfiguration config = new YamlConfiguration();
+            for (Map.Entry<String, PvPZone> entry : zones.entrySet()) {
+                PvPZone zone = entry.getValue();
+                String path = "zones." + entry.getKey();
+                config.set(path + ".name",  zone.getName());
+                config.set(path + ".world", zone.getWorldName());
+                config.set(path + ".x1", zone.getX1());
+                config.set(path + ".y1", zone.getY1());
+                config.set(path + ".z1", zone.getZ1());
+                config.set(path + ".x2", zone.getX2());
+                config.set(path + ".y2", zone.getY2());
+                config.set(path + ".z2", zone.getZ2());
+            }
+            YamlUtil.saveConfig(config, plugin.getDataFolder(), "zones.yml",
+                    plugin.getLogger(), "Failed to save zones");
+        }
+    }
+    
+    /**
+     * Save zones asynchronously to prevent blocking the main thread.
+     * 
+     * This method uses a snapshot approach for eventual consistency:
+     * - A consistent snapshot is taken under lock to prevent ConcurrentModificationException
+     * - The snapshot is written to disk without holding the lock to avoid blocking mutations
+     * - Mutations that occur after snapshot but before write completes will be saved on next save
+     * - This trade-off is acceptable for zone data which changes infrequently
+     */
+    private void saveZonesAsync() {
+        // Snapshot zones under synchronization to prevent ConcurrentModificationException
+        final Map<String, PvPZone> zoneSnapshot;
+        synchronized (saveLock) {
+            zoneSnapshot = new LinkedHashMap<>(zones);
+        }
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> saveZonesSnapshot(zoneSnapshot));
+    }
+    
+    /**
+     * Save a snapshot of zones to disk.
+     * 
+     * Note: This operates on a point-in-time snapshot without holding locks during I/O.
+     * Any mutations that occur after the snapshot was taken will not be reflected in this write,
+     * but will be captured by the next save operation (eventual consistency).
+     */
+    private void saveZonesSnapshot(Map<String, PvPZone> zoneSnapshot) {
         YamlConfiguration config = new YamlConfiguration();
-        for (Map.Entry<String, PvPZone> entry : zones.entrySet()) {
-            PvPZone z = entry.getValue();
+        for (Map.Entry<String, PvPZone> entry : zoneSnapshot.entrySet()) {
+            PvPZone zone = entry.getValue();
             String path = "zones." + entry.getKey();
-            config.set(path + ".name",  z.getName());
-            config.set(path + ".world", z.getWorldName());
-            config.set(path + ".x1", z.getX1());
-            config.set(path + ".y1", z.getY1());
-            config.set(path + ".z1", z.getZ1());
-            config.set(path + ".x2", z.getX2());
-            config.set(path + ".y2", z.getY2());
-            config.set(path + ".z2", z.getZ2());
+            config.set(path + ".name", zone.getName());
+            config.set(path + ".world", zone.getWorldName());
+            config.set(path + ".x1", zone.getX1());
+            config.set(path + ".y1", zone.getY1());
+            config.set(path + ".z1", zone.getZ1());
+            config.set(path + ".x2", zone.getX2());
+            config.set(path + ".y2", zone.getY2());
+            config.set(path + ".z2", zone.getZ2());
         }
-        try {
-            config.save(new File(plugin.getDataFolder(), "zones.yml"));
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save zones", e);
-        }
+        YamlUtil.saveConfig(config, plugin.getDataFolder(), "zones.yml",
+                plugin.getLogger(), "Failed to save zones");
     }
 }
