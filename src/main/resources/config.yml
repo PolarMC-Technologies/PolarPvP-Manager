@@ -28,7 +28,7 @@ zone-wand-material: BLAZE_ROD
 
 # Zone exit message cooldowns (per player, in seconds)
 # Controls how often players can receive "you left a forced PvP zone" messages.
-# Set a value to 0 to disable the cooldown for that message type (message sent every time).
+# Set to 0 to send message every time (no cooldown).
 zone-exit-cooldowns:
   # Cooldown for chat messages sent when leaving a forced PvP zone
   chat: 3

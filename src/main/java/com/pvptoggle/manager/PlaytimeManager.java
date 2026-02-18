@@ -10,6 +10,7 @@ import com.pvptoggle.model.PlayerData;
 import com.pvptoggle.util.MessageUtil;
 
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class PlaytimeManager {
 
@@ -33,9 +34,8 @@ public class PlaytimeManager {
         int hoursPerCycle = plugin.getConfig().getInt("playtime.hours-per-cycle", 1);
         
         // Validate hours-per-cycle to prevent division by zero
-        if (hoursPerCycle <= 0) {
-            plugin.getLogger().warning("[PvPToggle] Invalid value for 'playtime.hours-per-cycle' (" 
-                    + hoursPerCycle + "); using 1 instead.");
+        if (hoursPerCycle < 1) {
+            plugin.getLogger().log(Level.WARNING, "[PvPToggle] Invalid value for ''playtime.hours-per-cycle'' ({0}); using 1 instead.", hoursPerCycle);
             hoursPerCycle = 1;
         }
         
