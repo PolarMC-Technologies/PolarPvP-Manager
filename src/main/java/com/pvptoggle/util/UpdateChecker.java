@@ -17,7 +17,7 @@ import com.pvptoggle.PvPTogglePlugin;
 public class UpdateChecker implements Listener {
 
     private static final String GITHUB_API =
-            "https://api.github.com/repos/SSoggyTacoBlud/PolarPvP-Manager/releases/latest";
+            "https://api.github.com/repos/PolarMC-Technologies/PolarPvP-Manager/releases/latest";
 
     private final PvPTogglePlugin plugin;
     private volatile String latestVersion = null;
@@ -57,7 +57,7 @@ public class UpdateChecker implements Listener {
                     latestVersion = remote;
                     plugin.getLogger().log(Level.WARNING, "A new version is available: v{0} (you''re on v{1})",
                             new Object[]{remote, current});
-                    plugin.getLogger().warning("Download: https://github.com/SSoggyTacoBlud/PolarPvP-Manager/releases/latest");
+                    plugin.getLogger().warning("Download: https://github.com/PolarMC-Technologies/PolarPvP-Manager/releases/latest");
                 }
             } catch (java.io.IOException e) {
                 plugin.getLogger().log(Level.FINE, "Update check failed", e);
@@ -77,8 +77,12 @@ public class UpdateChecker implements Listener {
 
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline()) {
-                MessageUtil.send(player, "&e&lPolarPvP &8» &7Update available: &av" + latestVersion
-                        + " &7(you're on &cv" + plugin.getDescription().getVersion() + "&7)");
+                String msg = plugin.getConfig().getString(
+                        "messages.update-available",
+                        "&e&lPolarPvP &8» &7Update available: &av%latest% &7(you're on &cv%current%&7)");
+                msg = msg.replace("%latest%", latestVersion)
+                         .replace("%current%", plugin.getDescription().getVersion());
+                MessageUtil.send(player, msg);
             }
         }, 60L); // 3 seconds after join
     }
