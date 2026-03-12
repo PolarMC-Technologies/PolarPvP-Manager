@@ -73,7 +73,10 @@ public class PlaytimeManager {
     /**
      * Clean up action bar tracking for a player (called when they disconnect).
      * No longer performs any operation as throttling has been removed.
-     * @deprecated No longer needed but retained for backward compatibility
+     * 
+     * @param playerId the UUID of the player
+     * @deprecated since removal of action bar throttling; no replacement needed as
+     *             cleanup is no longer required. Safe to call but performs no operation.
      */
     @Deprecated
     public void cleanupPlayer(UUID playerId) {
