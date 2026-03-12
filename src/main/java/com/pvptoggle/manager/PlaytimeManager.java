@@ -98,6 +98,10 @@ public class PlaytimeManager {
     }
 
     private void checkAndApplyCycleMilestones(Player player, PlayerData data) {
+        // Defensively handle misconfigured cycleSeconds to avoid division by zero
+        if (cycleSeconds <= 0) {
+            return;
+        }
         int currentCycles = (int) (data.getTotalPlaytimeSeconds() / cycleSeconds);
         if (currentCycles <= data.getProcessedCycles()) return;
 
