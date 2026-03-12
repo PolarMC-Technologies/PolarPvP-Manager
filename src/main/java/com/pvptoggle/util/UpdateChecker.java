@@ -29,22 +29,22 @@ public class UpdateChecker implements Listener {
     public void check() {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                HttpURLConnection con = (HttpURLConnection) URI.create(GITHUB_API).toURL().openConnection();
-                con.setRequestMethod("GET");
-                con.setRequestProperty("Accept", "application/vnd.github.v3+json");
-                con.setConnectTimeout(5000);
-                con.setReadTimeout(5000);
+                HttpURLConnection connection = (HttpURLConnection) URI.create(GITHUB_API).toURL().openConnection();
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
 
-                if (con.getResponseCode() != 200) return;
+                if (connection.getResponseCode() != 200) return;
 
-                StringBuilder sb = new StringBuilder();
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
+                StringBuilder jsonResponse = new StringBuilder();
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                     String line;
-                    while ((line = reader.readLine()) != null) sb.append(line);
+                    while ((line = reader.readLine()) != null) jsonResponse.append(line);
                 }
 
                 // Ghetto JSON parse - just grab "tag_name":"vX.X.X"
-                String json = sb.toString();
+                String json = jsonResponse.toString();
                 String tag = extractTag(json);
                 if (tag == null) return;
 
@@ -90,14 +90,14 @@ public class UpdateChecker implements Listener {
 
     // Simple version comparison: 1.1.0 > 1.0.0
     private boolean isNewer(String remote, String current) {
-        String[] r = remote.split("\\.");
-        String[] c = current.split("\\.");
-        int len = Math.max(r.length, c.length);
+        String[] remoteParts = remote.split("\\.");
+        String[] currentParts = current.split("\\.");
+        int len = Math.max(remoteParts.length, currentParts.length);
         for (int i = 0; i < len; i++) {
-            int rv = i < r.length ? parseOr(r[i], 0) : 0;
-            int cv = i < c.length ? parseOr(c[i], 0) : 0;
-            if (rv > cv) return true;
-            if (rv < cv) return false;
+            int remoteVersion = i < remoteParts.length ? parseOr(remoteParts[i], 0) : 0;
+            int currentVersion = i < currentParts.length ? parseOr(currentParts[i], 0) : 0;
+            if (remoteVersion > currentVersion) return true;
+            if (remoteVersion < currentVersion) return false;
         }
         return false;
     }
