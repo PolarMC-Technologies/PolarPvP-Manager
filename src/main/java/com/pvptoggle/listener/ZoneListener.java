@@ -1,5 +1,9 @@
 package com.pvptoggle.listener;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -10,17 +14,23 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.pvptoggle.PvPTogglePlugin;
+import com.pvptoggle.util.ConfigUtil;
 import com.pvptoggle.util.MessageUtil;
 
 public class ZoneListener implements Listener {
 
     private final PvPTogglePlugin plugin;
+    private final Map<UUID, Long> chatExitCooldowns = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> actionbarExitCooldowns = new ConcurrentHashMap<>();
     private Material wandMaterial; // Cached wand material
+    private long chatCooldownMillis;
+    private long actionbarCooldownMillis;
 
     public ZoneListener(PvPTogglePlugin plugin) {
         this.plugin = plugin;
@@ -31,14 +41,11 @@ public class ZoneListener implements Listener {
      * Load and cache config values (called on plugin enable and reload)
      */
     public void loadConfig() {
-        try {
-            String matName = plugin.getConfig().getString("zone-wand-material");
-            if (matName == null) matName = "BLAZE_ROD";
-            this.wandMaterial = Material.valueOf(matName.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            // Bad material in config — fall back to BLAZE_ROD
-            this.wandMaterial = Material.BLAZE_ROD;
-        }
+        this.wandMaterial = ConfigUtil.getWandMaterial(plugin.getConfig());
+        int chatCooldownSeconds = plugin.getConfig().getInt("zone-exit-cooldowns.chat", 3);
+        int actionbarCooldownSeconds = plugin.getConfig().getInt("zone-exit-cooldowns.actionbar", 0);
+        this.chatCooldownMillis = chatCooldownSeconds * 1000L;
+        this.actionbarCooldownMillis = actionbarCooldownSeconds * 1000L;
     }
 
     @EventHandler
@@ -91,8 +98,56 @@ public class ZoneListener implements Listener {
             MessageUtil.send(event.getPlayer(), "&c&l⚔ You entered a forced PvP zone!");
             MessageUtil.sendActionBar(event.getPlayer(), "&c&l⚔ FORCED PVP ZONE ⚔");
         } else if (wasInZone && !isInZone) {
-            MessageUtil.send(event.getPlayer(), "&a&l✓ You left the forced PvP zone.");
+            Player player = event.getPlayer();
+            UUID playerId = player.getUniqueId();
+            long currentTime = System.currentTimeMillis();
+            
+            // Check if we should send chat message (with cooldown)
+            boolean sendChatMessage = false;
+            if (chatCooldownMillis == 0) {
+                // Cooldown disabled - always send chat message
+                sendChatMessage = true;
+            } else {
+                // Check cooldown for chat message
+                Long lastChatTime = chatExitCooldowns.get(playerId);
+                if (lastChatTime == null || (currentTime - lastChatTime) >= chatCooldownMillis) {
+                    sendChatMessage = true;
+                    chatExitCooldowns.put(playerId, currentTime);
+                }
+            }
+            
+            // Send chat message if allowed
+            if (sendChatMessage) {
+                MessageUtil.send(player, "&a&l✓ You left the forced PvP zone.");
+            }
+            
+            // Check if we should send action bar message (with cooldown)
+            boolean sendActionBarMessage = false;
+            if (actionbarCooldownMillis == 0) {
+                // Cooldown disabled - always send action bar message
+                sendActionBarMessage = true;
+            } else {
+                // Check cooldown for action bar message
+                Long lastActionBarTime = actionbarExitCooldowns.get(playerId);
+                if (lastActionBarTime == null || (currentTime - lastActionBarTime) >= actionbarCooldownMillis) {
+                    sendActionBarMessage = true;
+                    actionbarExitCooldowns.put(playerId, currentTime);
+                }
+            }
+            
+            // Send action bar message if allowed
+            if (sendActionBarMessage) {
+                MessageUtil.sendActionBar(player, "&a&l✓ You left the forced PvP zone.");
+            }
         }
+    }
+    
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        // Clean up cooldown data when player leaves to prevent memory leak
+        UUID playerId = event.getPlayer().getUniqueId();
+        chatExitCooldowns.remove(playerId);
+        actionbarExitCooldowns.remove(playerId);
     }
 
     private boolean isZoneWand(ItemStack item) {
