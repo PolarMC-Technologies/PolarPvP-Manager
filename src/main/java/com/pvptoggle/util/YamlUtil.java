@@ -21,10 +21,24 @@ public final class YamlUtil {
      */
     public static ConfigurationSection loadSection(File dataFolder, String filename, String sectionKey) {
         File file = new File(dataFolder, filename);
-        if (!file.exists()) return null;
+        if (!file.exists()) {
+            // File doesn't exist - this is expected on first run
+            return null;
+        }
 
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        return config.getConfigurationSection(sectionKey);
+        ConfigurationSection section = config.getConfigurationSection(sectionKey);
+        
+        if (section == null) {
+            // File exists but section is missing - log for debugging
+            java.util.logging.Logger.getLogger("YamlUtil").log(
+                Level.FINE, 
+                "Configuration section ''{0}'' not found in {1}", 
+                new Object[]{sectionKey, filename}
+            );
+        }
+        
+        return section;
     }
 
     /**
