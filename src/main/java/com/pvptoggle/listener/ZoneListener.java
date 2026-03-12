@@ -3,6 +3,7 @@ package com.pvptoggle.listener;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -46,14 +47,12 @@ public class ZoneListener implements Listener {
         int actionbarCooldownSeconds = plugin.getConfig().getInt("zone-exit-cooldowns.actionbar", 0);
 
         if (chatCooldownSeconds < 0) {
-            plugin.getLogger().warning("[PvPToggle] Invalid negative value for 'zone-exit-cooldowns.chat' (" 
-                    + chatCooldownSeconds + "); using 0 instead.");
+            plugin.getLogger().log(Level.WARNING, "[PvPToggle] Invalid negative value for ''zone-exit-cooldowns.chat'' ({0}); using 0 instead.", chatCooldownSeconds);
             chatCooldownSeconds = 0;
         }
 
         if (actionbarCooldownSeconds < 0) {
-            plugin.getLogger().warning("[PvPToggle] Invalid negative value for 'zone-exit-cooldowns.actionbar' (" 
-                    + actionbarCooldownSeconds + "); using 0 instead.");
+            plugin.getLogger().log(Level.WARNING, "[PvPToggle] Invalid negative value for ''zone-exit-cooldowns.actionbar'' ({0}); using 0 instead.", actionbarCooldownSeconds);
             actionbarCooldownSeconds = 0;
         }
         
@@ -139,17 +138,15 @@ public class ZoneListener implements Listener {
             return true;
         }
         
-        // Atomic check-and-update to avoid race conditions
-        final java.util.concurrent.atomic.AtomicBoolean shouldSend = new java.util.concurrent.atomic.AtomicBoolean(false);
-        cooldownMap.compute(playerId, (id, lastTime) -> {
+        // Atomic check-and-update using compute() result
+        Long updatedTime = cooldownMap.compute(playerId, (id, lastTime) -> {
             if (lastTime == null || (currentTime - lastTime) >= cooldownMillis) {
-                shouldSend.set(true);
                 return currentTime; // Update the timestamp
             }
             return lastTime; // Keep the old timestamp
         });
         
-        return shouldSend.get();
+        return updatedTime != null && updatedTime.longValue() == currentTime;
     }
 
     private boolean isZoneWand(ItemStack item) {
