@@ -36,6 +36,9 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
+        // Clean up action bar tracking to prevent memory leaks
+        plugin.getPlaytimeManager().cleanupPlayer(event.getPlayer().getUniqueId());
+        
         // Persist immediately so the player can't dodge debt by leaving
         // Use async to prevent blocking the main thread during logout
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
