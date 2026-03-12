@@ -202,7 +202,7 @@ public class ZoneManager {
         for (Map.Entry<String, PvPZone> entry : zoneSnapshot.entrySet()) {
             PvPZone zone = entry.getValue();
             String path = "zones." + entry.getKey();
-            config.set(path + ".name",  zone.getName());
+            config.set(path + ".name", zone.getName());
             config.set(path + ".world", zone.getWorldName());
             config.set(path + ".x1", zone.getX1());
             config.set(path + ".y1", zone.getY1());
