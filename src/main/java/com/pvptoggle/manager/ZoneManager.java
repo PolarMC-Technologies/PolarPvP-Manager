@@ -92,8 +92,8 @@ public class ZoneManager {
                 selection[1].getBlockX(), selection[1].getBlockY(), selection[1].getBlockZ()));
         synchronized (saveLock) {
             zones.put(name.toLowerCase(), zone);
+            clearZoneCache(); // Clear cache when zones change
         }
-        clearZoneCache(); // Clear cache when zones change
         saveZonesAsync();
         return true;
     }
