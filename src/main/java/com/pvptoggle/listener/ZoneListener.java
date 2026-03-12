@@ -139,14 +139,17 @@ public class ZoneListener implements Listener {
         }
         
         // Atomic check-and-update using compute() result
+        // The lambda returns currentTime if ready, or lastTime if not ready
+        // By comparing the result to currentTime, we know if the update occurred
         Long updatedTime = cooldownMap.compute(playerId, (id, lastTime) -> {
             if (lastTime == null || (currentTime - lastTime) >= cooldownMillis) {
-                return currentTime; // Update the timestamp
+                return currentTime; // Cooldown ready - update timestamp
             }
-            return lastTime; // Keep the old timestamp
+            return lastTime; // Cooldown not ready - keep old timestamp
         });
         
-        return updatedTime != null && updatedTime.longValue() == currentTime;
+        // If compute() returned currentTime, the cooldown was ready
+        return updatedTime != null && updatedTime.equals(currentTime);
     }
 
     private boolean isZoneWand(ItemStack item) {
