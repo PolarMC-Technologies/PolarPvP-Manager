@@ -57,20 +57,6 @@ public class ZoneListener implements Listener {
             actionbarCooldownSeconds = 0;
         }
         
-        // Validate maximum values to prevent integer overflow (max ~24 days)
-        final int MAX_COOLDOWN_SECONDS = Integer.MAX_VALUE / 1000;
-        if (chatCooldownSeconds > MAX_COOLDOWN_SECONDS) {
-            plugin.getLogger().warning("[PvPToggle] Value for 'zone-exit-cooldowns.chat' (" 
-                    + chatCooldownSeconds + ") exceeds maximum; using " + MAX_COOLDOWN_SECONDS + " instead.");
-            chatCooldownSeconds = MAX_COOLDOWN_SECONDS;
-        }
-        
-        if (actionbarCooldownSeconds > MAX_COOLDOWN_SECONDS) {
-            plugin.getLogger().warning("[PvPToggle] Value for 'zone-exit-cooldowns.actionbar' (" 
-                    + actionbarCooldownSeconds + ") exceeds maximum; using " + MAX_COOLDOWN_SECONDS + " instead.");
-            actionbarCooldownSeconds = MAX_COOLDOWN_SECONDS;
-        }
-        
         this.chatCooldownMillis = chatCooldownSeconds * 1000L;
         this.actionbarCooldownMillis = actionbarCooldownSeconds * 1000L;
     }
