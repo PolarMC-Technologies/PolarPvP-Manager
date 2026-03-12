@@ -28,12 +28,15 @@ public class ZoneManager {
     private final Map<UUID, Location[]> selections = new HashMap<>();      // [0]=pos1, [1]=pos2
     
     // LRU cache for zone lookups with automatic eviction
-    private final Map<String, Boolean> zoneCache = new LinkedHashMap<String, Boolean>(1000, 0.75f, true) {
-        @Override
-        protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest) {
-            return size() > 10000; // LRU eviction when cache exceeds 10k entries
+    // Wrapped in synchronizedMap for thread-safety across all operations
+    private final Map<String, Boolean> zoneCache = Collections.synchronizedMap(
+        new LinkedHashMap<String, Boolean>(1000, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest) {
+                return size() > 10000; // LRU eviction when cache exceeds 10k entries
+            }
         }
-    };
+    );
     // Synchronize writes to zone file
     private final Object saveLock = new Object();
 
@@ -45,9 +48,7 @@ public class ZoneManager {
      * Clear the zone cache (called when zones are modified)
      */
     private void clearZoneCache() {
-        synchronized (zoneCache) {
-            zoneCache.clear();
-        }
+        zoneCache.clear();
     }
     
     /**
@@ -55,8 +56,12 @@ public class ZoneManager {
      * Uses StringBuilder for performance as this is called frequently
      */
     private String getLocationCacheKey(Location loc) {
+        World world = loc.getWorld();
+        if (world == null) {
+            return "null:0:0:0"; // Fallback for null worlds
+        }
         return new StringBuilder(64)
-            .append(loc.getWorld().getName())
+            .append(world.getName())
             .append(':')
             .append(loc.getBlockX())
             .append(':')
@@ -115,15 +120,13 @@ public class ZoneManager {
     }
 
     public boolean isInForcedPvPZone(Location location) {
-        if (location == null) return false;
+        if (location == null || location.getWorld() == null) return false;
         
         // Check cache first
         String cacheKey = getLocationCacheKey(location);
-        synchronized (zoneCache) {
-            Boolean cached = zoneCache.get(cacheKey);
-            if (cached != null) {
-                return cached;
-            }
+        Boolean cached = zoneCache.get(cacheKey);
+        if (cached != null) {
+            return cached;
         }
         
         // Not in cache, check all zones
@@ -136,9 +139,7 @@ public class ZoneManager {
         }
         
         // Cache the result
-        synchronized (zoneCache) {
-            zoneCache.put(cacheKey, inZone);
-        }
+        zoneCache.put(cacheKey, inZone);
         
         return inZone;
     }
