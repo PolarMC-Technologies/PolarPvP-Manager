@@ -198,22 +198,20 @@ public class ZoneManager {
      * Save a snapshot of zones to disk
      */
     private void saveZonesSnapshot(Map<String, PvPZone> zoneSnapshot) {
-        synchronized (saveLock) {
-            YamlConfiguration config = new YamlConfiguration();
-            for (Map.Entry<String, PvPZone> entry : zoneSnapshot.entrySet()) {
-                PvPZone zone = entry.getValue();
-                String path = "zones." + entry.getKey();
-                config.set(path + ".name",  zone.getName());
-                config.set(path + ".world", zone.getWorldName());
-                config.set(path + ".x1", zone.getX1());
-                config.set(path + ".y1", zone.getY1());
-                config.set(path + ".z1", zone.getZ1());
-                config.set(path + ".x2", zone.getX2());
-                config.set(path + ".y2", zone.getY2());
-                config.set(path + ".z2", zone.getZ2());
-            }
-            YamlUtil.saveConfig(config, plugin.getDataFolder(), "zones.yml",
-                    plugin.getLogger(), "Failed to save zones");
+        YamlConfiguration config = new YamlConfiguration();
+        for (Map.Entry<String, PvPZone> entry : zoneSnapshot.entrySet()) {
+            PvPZone zone = entry.getValue();
+            String path = "zones." + entry.getKey();
+            config.set(path + ".name",  zone.getName());
+            config.set(path + ".world", zone.getWorldName());
+            config.set(path + ".x1", zone.getX1());
+            config.set(path + ".y1", zone.getY1());
+            config.set(path + ".z1", zone.getZ1());
+            config.set(path + ".x2", zone.getX2());
+            config.set(path + ".y2", zone.getY2());
+            config.set(path + ".z2", zone.getZ2());
         }
+        YamlUtil.saveConfig(config, plugin.getDataFolder(), "zones.yml",
+                plugin.getLogger(), "Failed to save zones");
     }
 }
