@@ -3,6 +3,7 @@ package com.pvptoggle.listener;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.bukkit.ChatColor;
@@ -140,7 +141,7 @@ public class ZoneListener implements Listener {
         
         // Use AtomicBoolean to capture whether the cooldown was ready inside the lambda
         // This avoids false positives when lastTime equals currentTime from a previous call
-        final java.util.concurrent.atomic.AtomicBoolean wasReady = new java.util.concurrent.atomic.AtomicBoolean(false);
+        final AtomicBoolean wasReady = new AtomicBoolean(false);
         cooldownMap.compute(playerId, (id, lastTime) -> {
             if (lastTime == null || (currentTime - lastTime) >= cooldownMillis) {
                 wasReady.set(true);
