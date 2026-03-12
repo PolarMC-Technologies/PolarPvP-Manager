@@ -10,6 +10,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 public final class YamlUtil {
 
+    private static final Logger LOGGER = Logger.getLogger(YamlUtil.class.getName());
+
     private YamlUtil() {}
 
     /**
@@ -31,7 +33,7 @@ public final class YamlUtil {
         
         if (section == null) {
             // File exists but section is missing - log for debugging
-            java.util.logging.Logger.getLogger("YamlUtil").log(
+            LOGGER.log(
                 Level.FINE, 
                 "Configuration section ''{0}'' not found in {1}", 
                 new Object[]{sectionKey, filename}
