@@ -28,7 +28,7 @@ public class ZoneManager {
     // LRU cache for zone lookups with automatic eviction
     // Wrapped in synchronizedMap for thread-safety across all operations
     private final Map<String, Boolean> zoneCache = Collections.synchronizedMap(
-        new LinkedHashMap<String, Boolean>(1000, 0.75f, true) {
+        new LinkedHashMap<String, Boolean>(10000, 0.75f, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest) {
                 return size() > 10000; // LRU eviction when cache exceeds 10k entries
