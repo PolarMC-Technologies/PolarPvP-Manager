@@ -27,7 +27,7 @@ public class PlaytimeManager {
     // Safe to use HashMap as runTaskTimer guarantees execution on main thread
     private final Map<UUID, Integer> lastActionBarTick = new HashMap<>();
     private int currentTick = 0;
-    private static final int ACTION_BAR_THROTTLE_TICKS = 20; // Show once per second instead of 20x/sec
+    private static final int ACTION_BAR_THROTTLE_TICKS = 1; // Show once per second instead of 20x/sec
 
     public PlaytimeManager(PvPTogglePlugin plugin) {
         this.plugin = plugin;
