@@ -156,6 +156,7 @@ public class ZoneManager {
         ConfigurationSection section = YamlUtil.loadSection(plugin.getDataFolder(), "zones.yml", "zones");
         if (section == null) return;
 
+        int loadedCount;
         synchronized (saveLock) {
             for (String key : section.getKeys(false)) {
                 ConfigurationSection zoneSection = section.getConfigurationSection(key);
@@ -168,8 +169,9 @@ public class ZoneManager {
                                 zoneSection.getInt("x2"), zoneSection.getInt("y2"), zoneSection.getInt("z2"))
                 ));
             }
+            loadedCount = zones.size();
         }
-        plugin.getLogger().log(Level.INFO, "Loaded {0} PvP zone(s).", zones.size());
+        plugin.getLogger().log(Level.INFO, "Loaded {0} PvP zone(s).", loadedCount);
     }
 
     public void saveZones() {
