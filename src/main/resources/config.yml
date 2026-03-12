@@ -26,6 +26,15 @@ playtime:
 # Zone wand material (any valid Bukkit Material name)
 zone-wand-material: BLAZE_ROD
 
+# Zone exit message cooldowns (in seconds)
+# Prevents spam when repeatedly leaving forced PvP zones
+# Set to 0 to disable cooldown for that message type
+zone-exit-cooldowns:
+  # Cooldown for chat messages when leaving a zone
+  chat: 3
+  # Cooldown for action bar messages when leaving a zone
+  actionbar: 0
+
 # Auto-save interval (minutes)
 save-interval: 5
 
