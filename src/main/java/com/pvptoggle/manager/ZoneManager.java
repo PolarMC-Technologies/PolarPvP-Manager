@@ -211,7 +211,9 @@ public class ZoneManager {
             config.set(path + ".y2", zone.getY2());
             config.set(path + ".z2", zone.getZ2());
         }
-        YamlUtil.saveConfig(config, plugin.getDataFolder(), "zones.yml",
-                plugin.getLogger(), "Failed to save zones");
+        synchronized (saveLock) {
+            YamlUtil.saveConfig(config, plugin.getDataFolder(), "zones.yml",
+                    plugin.getLogger(), "Failed to save zones");
+        }
     }
 }
