@@ -73,7 +73,9 @@ public class PlaytimeManager {
     private void tickForceTimer(Player player, PlayerData data, int onlineCount, boolean debug) {
         if (player.hasPermission("pvptoggle.bypass")) return;
 
+        String ratioMode = plugin.getConfig().getString("pvp-force-timer.ratio-mode", "debt");
         int debtRatio = plugin.getConfig().getInt("pvp-force-timer.debt-ratio", 5);
+        int hourlyForcedMinutes = plugin.getConfig().getInt("pvp-force-timer.hourly-forced-minutes", 20);
         long maxDebtSeconds = plugin.getConfig().getInt("pvp-force-timer.max-debt", 60) * 60L;
         long minForcedSeconds = plugin.getConfig().getInt("pvp-force-timer.minimum-forced-duration", 20) * 60L;
         boolean exemptManualPvp = plugin.getConfig().getBoolean("pvp-force-timer.exemptions.manual-pvp", true);
@@ -115,22 +117,42 @@ public class PlaytimeManager {
             }
 
             if (!exempt) {
-                // Accumulate PvP-off time
-                data.setPvpOffAccumulator(data.getPvpOffAccumulator() + 1);
+                if ("hourly".equalsIgnoreCase(ratioMode)) {
+                    // Hourly mode: check if total playtime crossed a cycle boundary
+                    long cycleSeconds = 3600L; // 1 hour
+                    int currentCycles = (int) (data.getTotalPlaytimeSeconds() / cycleSeconds);
+                    if (currentCycles > data.getProcessedCycles()) {
+                        int newCycles = currentCycles - data.getProcessedCycles();
+                        data.setProcessedCycles(currentCycles);
 
-                // Convert accumulated time to debt using ratio
-                long ratioSeconds = debtRatio * 60L; // ratio is in minutes
-                if (data.getPvpOffAccumulator() >= ratioSeconds) {
-                    long earnedDebt = 60L; // 1 minute of debt per ratio-block
-                    long newDebt = Math.min(data.getPvpDebtSeconds() + earnedDebt, maxDebtSeconds);
-                    data.setPvpDebtSeconds(newDebt);
-                    data.setPvpOffAccumulator(data.getPvpOffAccumulator() - ratioSeconds);
+                        long earnedDebt = newCycles * hourlyForcedMinutes * 60L;
+                        long newDebt = Math.min(data.getPvpDebtSeconds() + earnedDebt, maxDebtSeconds);
+                        data.setPvpDebtSeconds(newDebt);
 
-                    if (debug) {
-                        plugin.getLogger().log(Level.INFO,
-                                "[DEBUG] {0}: +{1}s debt (total {2}s, cap {3}s)",
-                                new Object[]{player.getName(), earnedDebt,
-                                        data.getPvpDebtSeconds(), maxDebtSeconds});
+                        if (debug) {
+                            plugin.getLogger().log(Level.INFO,
+                                    "[DEBUG] {0}: hourly cycle +{1}s debt (total {2}s, cap {3}s)",
+                                    new Object[]{player.getName(), earnedDebt,
+                                            data.getPvpDebtSeconds(), maxDebtSeconds});
+                        }
+                    }
+                } else {
+                    // Debt mode: accumulate PvP-off time and convert to debt
+                    data.setPvpOffAccumulator(data.getPvpOffAccumulator() + 1);
+
+                    long ratioSeconds = debtRatio * 60L; // ratio is in minutes
+                    if (data.getPvpOffAccumulator() >= ratioSeconds) {
+                        long earnedDebt = 60L; // 1 minute of debt per ratio-block
+                        long newDebt = Math.min(data.getPvpDebtSeconds() + earnedDebt, maxDebtSeconds);
+                        data.setPvpDebtSeconds(newDebt);
+                        data.setPvpOffAccumulator(data.getPvpOffAccumulator() - ratioSeconds);
+
+                        if (debug) {
+                            plugin.getLogger().log(Level.INFO,
+                                    "[DEBUG] {0}: +{1}s debt (total {2}s, cap {3}s)",
+                                    new Object[]{player.getName(), earnedDebt,
+                                            data.getPvpDebtSeconds(), maxDebtSeconds});
+                        }
                     }
                 }
 
