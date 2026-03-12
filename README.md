@@ -148,7 +148,7 @@ Build the plugin:
 mvn clean package
 ```
 
-The compiled JAR will be located at `target/PolarPvP-Manager-1.0.0.jar`.
+The compiled JAR will be located in the `target/` directory, typically named `PolarPvP-Manager-<version>.jar`.
 
 ## Troubleshooting
 
