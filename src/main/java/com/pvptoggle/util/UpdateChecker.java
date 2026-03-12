@@ -77,8 +77,12 @@ public class UpdateChecker implements Listener {
 
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline()) {
-                MessageUtil.send(player, "&e&lPolarPvP &8» &7Update available: &av" + latestVersion
-                        + " &7(you're on &cv" + plugin.getDescription().getVersion() + "&7)");
+                String msg = plugin.getConfig().getString(
+                        "messages.update-available",
+                        "&e&lPolarPvP &8» &7Update available: &av%latest% &7(you're on &cv%current%&7)");
+                msg = msg.replace("%latest%", latestVersion)
+                         .replace("%current%", plugin.getDescription().getVersion());
+                MessageUtil.send(player, msg);
             }
         }, 60L); // 3 seconds after join
     }
