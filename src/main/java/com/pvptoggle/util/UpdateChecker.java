@@ -20,7 +20,7 @@ public class UpdateChecker implements Listener {
             "https://api.github.com/repos/PolarMC-Technologies/PolarPvP-Manager/releases/latest";
 
     private final PvPTogglePlugin plugin;
-    private String latestVersion = null;
+    private volatile String latestVersion = null;
 
     public UpdateChecker(PvPTogglePlugin plugin) {
         this.plugin = plugin;
