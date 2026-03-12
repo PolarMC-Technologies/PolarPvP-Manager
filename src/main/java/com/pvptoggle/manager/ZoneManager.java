@@ -102,9 +102,11 @@ public class ZoneManager {
         boolean removed;
         synchronized (saveLock) {
             removed = zones.remove(name.toLowerCase()) != null;
+            if (removed) {
+                clearZoneCache(); // Clear cache when zones change
+            }
         }
         if (removed) {
-            clearZoneCache(); // Clear cache when zones change
             saveZonesAsync();
             return true;
         }
