@@ -116,15 +116,17 @@ public class PlaytimeManager {
                 }
             }
 
-            if (!exempt) {
-                if ("hourly".equalsIgnoreCase(ratioMode)) {
-                    // Hourly mode: check if total playtime crossed a cycle boundary
-                    long cycleSeconds = 3600L; // 1 hour
-                    int currentCycles = (int) (data.getTotalPlaytimeSeconds() / cycleSeconds);
-                    if (currentCycles > data.getProcessedCycles()) {
-                        int newCycles = currentCycles - data.getProcessedCycles();
-                        data.setProcessedCycles(currentCycles);
+            // Hourly mode: always keep processedCycles in sync with total playtime,
+            // even when exempt, so debt doesn't burst-accumulate retroactively
+            // when the exemption lifts (e.g. another player joins a solo server).
+            if ("hourly".equalsIgnoreCase(ratioMode)) {
+                long cycleSeconds = 3600L; // 1 hour
+                int currentCycles = (int) (data.getTotalPlaytimeSeconds() / cycleSeconds);
+                if (currentCycles > data.getProcessedCycles()) {
+                    int newCycles = currentCycles - data.getProcessedCycles();
+                    data.setProcessedCycles(currentCycles);
 
+                    if (!exempt) {
                         long earnedDebt = newCycles * hourlyForcedMinutes * 60L;
                         long newDebt = Math.min(data.getPvpDebtSeconds() + earnedDebt, maxDebtSeconds);
                         data.setPvpDebtSeconds(newDebt);
@@ -135,8 +137,16 @@ public class PlaytimeManager {
                                     new Object[]{player.getName(), earnedDebt,
                                             data.getPvpDebtSeconds(), maxDebtSeconds});
                         }
+                    } else if (debug) {
+                        plugin.getLogger().log(Level.INFO,
+                                "[DEBUG] {0}: hourly cycle crossed but exempt — no debt added ({1} cycles skipped)",
+                                new Object[]{player.getName(), newCycles});
                     }
-                } else {
+                }
+            }
+
+            if (!exempt) {
+                if (!"hourly".equalsIgnoreCase(ratioMode)) {
                     // Debt mode: accumulate PvP-off time and convert to debt
                     data.setPvpOffAccumulator(data.getPvpOffAccumulator() + 1);
 
