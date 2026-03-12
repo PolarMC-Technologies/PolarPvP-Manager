@@ -106,10 +106,24 @@ public class PvPCommand implements TabExecutor {
             }
             if (data.getPvpDebtSeconds() > 0) {
                 MessageUtil.send(player, "&7  Playtime debt: &f" + MessageUtil.formatTime(data.getPvpDebtSeconds()));
+                if (data.getForcedPvpElapsed() > 0) {
+                    MessageUtil.send(player, "&7  Forced time served: &f" + MessageUtil.formatTime(data.getForcedPvpElapsed()));
+                }
             }
+        } else if (data.getPvpDebtSeconds() > 0) {
+            // Has debt but solo exemption is pausing enforcement
+            MessageUtil.send(player, "&7Forced: &e(paused — solo server)");
+            MessageUtil.send(player, "&7  Pending debt: &f" + MessageUtil.formatTime(data.getPvpDebtSeconds()));
         }
 
         MessageUtil.send(player, "&7Total playtime: &f" + MessageUtil.formatTime(data.getTotalPlaytimeSeconds()));
+
+        if (plugin.getConfig().getBoolean("pvp-force-timer.enabled", false)
+                && data.getPvpOffAccumulator() > 0) {
+            int ratio = plugin.getConfig().getInt("pvp-force-timer.debt-ratio", 5);
+            MessageUtil.send(player, "&7PvP-off time: &f" + MessageUtil.formatTime(data.getPvpOffAccumulator())
+                    + " &7/ &f" + ratio + "m &7until debt");
+        }
     }
 
     @Override
