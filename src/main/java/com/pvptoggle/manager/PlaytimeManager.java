@@ -24,6 +24,7 @@ public class PlaytimeManager {
     private int forcedMinutes;
     
     // Throttle action bar messages (UUID -> last tick shown)
+    // Using HashMap as this is only accessed from main thread
     private final Map<UUID, Integer> lastActionBarTick = new HashMap<>();
     private int currentTick = 0;
     private static final int ACTION_BAR_THROTTLE_TICKS = 20; // Show once per second instead of 20x/sec
@@ -73,6 +74,13 @@ public class PlaytimeManager {
     public void stopTracking() {
         if (tickTask != null) tickTask.cancel();
         if (saveTask != null) saveTask.cancel();
+    }
+    
+    /**
+     * Clean up action bar tracking for a player (called when they disconnect)
+     */
+    public void cleanupPlayer(UUID playerId) {
+        lastActionBarTick.remove(playerId);
     }
 
     private void tick() {
