@@ -154,15 +154,18 @@ public class ZoneListener implements Listener {
         }
         
         // Atomic check-and-update to avoid race conditions
-        Long previousTime = cooldownMap.compute(playerId, (id, lastTime) -> {
+        // We use a boolean array as a mutable container to capture the result
+        final boolean[] shouldSend = new boolean[1];
+        cooldownMap.compute(playerId, (id, lastTime) -> {
             if (lastTime == null || (currentTime - lastTime) >= cooldownMillis) {
+                shouldSend[0] = true;
                 return currentTime; // Update the timestamp
             }
+            shouldSend[0] = false;
             return lastTime; // Keep the old timestamp
         });
         
-        // If compute returned currentTime, the cooldown was ready
-        return previousTime == null || (currentTime - previousTime) >= cooldownMillis;
+        return shouldSend[0];
     }
 
     private boolean isZoneWand(ItemStack item) {
