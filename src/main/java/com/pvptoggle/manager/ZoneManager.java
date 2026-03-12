@@ -90,14 +90,20 @@ public class ZoneManager {
         PvPZone zone = new PvPZone(name, worldA.getName(), new PvPZone.Corners(
                 selection[0].getBlockX(), selection[0].getBlockY(), selection[0].getBlockZ(),
                 selection[1].getBlockX(), selection[1].getBlockY(), selection[1].getBlockZ()));
-        zones.put(name.toLowerCase(), zone);
+        synchronized (saveLock) {
+            zones.put(name.toLowerCase(), zone);
+        }
         clearZoneCache(); // Clear cache when zones change
         saveZonesAsync();
         return true;
     }
 
     public boolean deleteZone(String name) {
-        if (zones.remove(name.toLowerCase()) != null) {
+        boolean removed;
+        synchronized (saveLock) {
+            removed = zones.remove(name.toLowerCase()) != null;
+        }
+        if (removed) {
             clearZoneCache(); // Clear cache when zones change
             saveZonesAsync();
             return true;
@@ -148,16 +154,18 @@ public class ZoneManager {
         ConfigurationSection section = YamlUtil.loadSection(plugin.getDataFolder(), "zones.yml", "zones");
         if (section == null) return;
 
-        for (String key : section.getKeys(false)) {
-            ConfigurationSection zoneSection = section.getConfigurationSection(key);
-            if (zoneSection == null) continue;
-            zones.put(key.toLowerCase(), new PvPZone(
-                    zoneSection.getString("name", key),
-                    zoneSection.getString("world", "world"),
-                    new PvPZone.Corners(
-                            zoneSection.getInt("x1"), zoneSection.getInt("y1"), zoneSection.getInt("z1"),
-                            zoneSection.getInt("x2"), zoneSection.getInt("y2"), zoneSection.getInt("z2"))
-            ));
+        synchronized (saveLock) {
+            for (String key : section.getKeys(false)) {
+                ConfigurationSection zoneSection = section.getConfigurationSection(key);
+                if (zoneSection == null) continue;
+                zones.put(key.toLowerCase(), new PvPZone(
+                        zoneSection.getString("name", key),
+                        zoneSection.getString("world", "world"),
+                        new PvPZone.Corners(
+                                zoneSection.getInt("x1"), zoneSection.getInt("y1"), zoneSection.getInt("z1"),
+                                zoneSection.getInt("x2"), zoneSection.getInt("y2"), zoneSection.getInt("z2"))
+                ));
+            }
         }
         plugin.getLogger().log(Level.INFO, "Loaded {0} PvP zone(s).", zones.size());
     }
