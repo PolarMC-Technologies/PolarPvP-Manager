@@ -102,41 +102,11 @@ public class ZoneListener implements Listener {
             UUID playerId = player.getUniqueId();
             long currentTime = System.currentTimeMillis();
             
-            // Check if we should send chat message (with cooldown)
-            boolean sendChatMessage = false;
-            if (chatCooldownMillis == 0) {
-                // Cooldown disabled - always send chat message
-                sendChatMessage = true;
-            } else {
-                // Check cooldown for chat message
-                Long lastChatTime = chatExitCooldowns.get(playerId);
-                if (lastChatTime == null || (currentTime - lastChatTime) >= chatCooldownMillis) {
-                    sendChatMessage = true;
-                    chatExitCooldowns.put(playerId, currentTime);
-                }
-            }
-            
-            // Send chat message if allowed
-            if (sendChatMessage) {
+            if (isCooldownReady(chatExitCooldowns, playerId, chatCooldownMillis, currentTime)) {
                 MessageUtil.send(player, "&a&l✓ You left the forced PvP zone.");
             }
             
-            // Check if we should send action bar message (with cooldown)
-            boolean sendActionBarMessage = false;
-            if (actionbarCooldownMillis == 0) {
-                // Cooldown disabled - always send action bar message
-                sendActionBarMessage = true;
-            } else {
-                // Check cooldown for action bar message
-                Long lastActionBarTime = actionbarExitCooldowns.get(playerId);
-                if (lastActionBarTime == null || (currentTime - lastActionBarTime) >= actionbarCooldownMillis) {
-                    sendActionBarMessage = true;
-                    actionbarExitCooldowns.put(playerId, currentTime);
-                }
-            }
-            
-            // Send action bar message if allowed
-            if (sendActionBarMessage) {
+            if (isCooldownReady(actionbarExitCooldowns, playerId, actionbarCooldownMillis, currentTime)) {
                 MessageUtil.sendActionBar(player, "&a&l✓ You left the forced PvP zone.");
             }
         }
@@ -148,6 +118,16 @@ public class ZoneListener implements Listener {
         UUID playerId = event.getPlayer().getUniqueId();
         chatExitCooldowns.remove(playerId);
         actionbarExitCooldowns.remove(playerId);
+    }
+
+    private boolean isCooldownReady(Map<UUID, Long> cooldownMap, UUID playerId, long cooldownMillis, long currentTime) {
+        if (cooldownMillis == 0) return true;
+        Long lastTime = cooldownMap.get(playerId);
+        if (lastTime == null || (currentTime - lastTime) >= cooldownMillis) {
+            cooldownMap.put(playerId, currentTime);
+            return true;
+        }
+        return false;
     }
 
     private boolean isZoneWand(ItemStack item) {
