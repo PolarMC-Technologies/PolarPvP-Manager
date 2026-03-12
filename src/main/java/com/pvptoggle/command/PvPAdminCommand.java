@@ -47,7 +47,6 @@ public class PvPAdminCommand implements TabExecutor {
             case "zone"      -> handleZone(sender, args);
             case SUB_PLAYER  -> handlePlayer(sender, args);
             case "reload"    -> handleReload(sender);
-            case "simtime"   -> handleSimtime(sender, args);
             case "pvptimer"  -> handlePvpTimer(sender, args);
             default          -> { return false; }
         }
@@ -209,29 +208,6 @@ public class PvPAdminCommand implements TabExecutor {
         }
     }
 
-    // temp test command - adds fake playtime so you don't have to wait an hour
-    private void handleSimtime(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player player)) {
-            MessageUtil.send(sender, PLAYERS_ONLY);
-            return;
-        }
-        if (args.length < 2) {
-            MessageUtil.send(sender, "&cUsage: /pvpadmin simtime <seconds>");
-            return;
-        }
-        try {
-            long seconds = Long.parseLong(args[1]);
-            PlayerData data = plugin.getPvPManager().getPlayerData(player.getUniqueId());
-            data.setTotalPlaytimeSeconds(data.getTotalPlaytimeSeconds() + seconds);
-            MessageUtil.send(player, "&aAdded &f" + MessageUtil.formatTime(seconds)
-                    + " &ato your playtime. Total: &f"
-                    + MessageUtil.formatTime(data.getTotalPlaytimeSeconds()));
-            MessageUtil.send(player, "&7(Debt will trigger on the next tick if a cycle threshold is crossed)");
-        } catch (NumberFormatException e) {
-            MessageUtil.send(sender, "&cInvalid number: &f" + args[1]);
-        }
-    }
-
     // ─── PvP Timer admin commands ──────────────────────────────────────────
 
     private void handlePvpTimer(CommandSender sender, String[] args) {
@@ -309,6 +285,8 @@ public class PvPAdminCommand implements TabExecutor {
                     + plugin.getConfig().getBoolean("pvp-force-timer.exemptions.forced-zones", true));
             MessageUtil.send(sender, "&7  Exempt solo server: &f"
                     + plugin.getConfig().getBoolean("pvp-force-timer.exemptions.solo-server", true));
+            MessageUtil.send(sender, "&7  Solo accumulate: &f"
+                    + plugin.getConfig().getBoolean("pvp-force-timer.exemptions.solo-accumulate", true));
         } else {
             MessageUtil.send(sender, "&7  Hours per cycle: &f"
                     + plugin.getConfig().getInt("playtime.hours-per-cycle", 1));
@@ -425,7 +403,6 @@ public class PvPAdminCommand implements TabExecutor {
         MessageUtil.send(sender, "&e/pvpadmin pvptimer simulate [player] <sec> &7— add PvP-off time");
         MessageUtil.send(sender, "&e/pvpadmin pvptimer reset [player] &7— reset timer data");
         MessageUtil.send(sender, "&e/pvpadmin reload &7— reload config");
-        MessageUtil.send(sender, "&e/pvpadmin simtime <seconds> &7— add fake playtime (testing)");
     }
 
     @Override
@@ -434,7 +411,7 @@ public class PvPAdminCommand implements TabExecutor {
 
         switch (args.length) {
             case 1 -> completions.addAll(
-                    Arrays.asList("wand", "zone", SUB_PLAYER, "pvptimer", "reload", "simtime"));
+                    Arrays.asList("wand", "zone", SUB_PLAYER, "pvptimer", "reload"));
             case 2 -> {
                 if (args[0].equalsIgnoreCase("zone")) {
                     completions.addAll(Arrays.asList("create", SUB_DELETE, "list", "info"));
