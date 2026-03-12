@@ -9,8 +9,6 @@ import com.pvptoggle.PvPTogglePlugin;
 import com.pvptoggle.model.PlayerData;
 import com.pvptoggle.util.MessageUtil;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 public class PlaytimeManager {
