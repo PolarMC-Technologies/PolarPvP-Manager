@@ -270,7 +270,11 @@ public class PvPAdminCommand implements TabExecutor {
         MessageUtil.send(sender, "&7Online players: &f" + Bukkit.getOnlinePlayers().size());
 
         boolean timerEnabled = plugin.getConfig().getBoolean("pvp-force-timer.enabled", false);
-        MessageUtil.send(sender, "&7Force timer mode: " + (timerEnabled ? "&aDebt-ratio" : "&eLegacy cycle"));
+        String ratioMode = timerEnabled
+                ? plugin.getConfig().getString("pvp-force-timer.ratio-mode", "debt")
+                : "legacy";
+        MessageUtil.send(sender, "&7Force timer mode: "
+                + (timerEnabled ? "&a" + ratioMode : "&eLegacy cycle"));
     }
 
     @SuppressWarnings("deprecation")
@@ -286,8 +290,15 @@ public class PvPAdminCommand implements TabExecutor {
         MessageUtil.send(sender, "&7  Force timer enabled: " + (timerEnabled ? "&aYes" : "&cNo"));
 
         if (timerEnabled) {
-            MessageUtil.send(sender, "&7  Debt ratio: &f"
-                    + plugin.getConfig().getInt("pvp-force-timer.debt-ratio", 5) + " min off = 1 min debt");
+            String ratioMode = plugin.getConfig().getString("pvp-force-timer.ratio-mode", "debt");
+            MessageUtil.send(sender, "&7  Ratio mode: &f" + ratioMode);
+            if ("hourly".equalsIgnoreCase(ratioMode)) {
+                MessageUtil.send(sender, "&7  Forced minutes per hour: &f"
+                        + plugin.getConfig().getInt("pvp-force-timer.hourly-forced-minutes", 20) + " min/hr");
+            } else {
+                MessageUtil.send(sender, "&7  Debt ratio: &f"
+                        + plugin.getConfig().getInt("pvp-force-timer.debt-ratio", 5) + " min off = 1 min debt");
+            }
             MessageUtil.send(sender, "&7  Max debt: &f"
                     + plugin.getConfig().getInt("pvp-force-timer.max-debt", 60) + " min");
             MessageUtil.send(sender, "&7  Min forced duration: &f"
