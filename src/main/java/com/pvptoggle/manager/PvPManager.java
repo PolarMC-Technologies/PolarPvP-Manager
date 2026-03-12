@@ -19,6 +19,9 @@ public class PvPManager {
 
     private final PvPTogglePlugin plugin;
     private final Map<UUID, PlayerData> playerDataMap = new ConcurrentHashMap<>();
+    
+    // Synchronize writes to player data file
+    private final Object saveLock = new Object();
 
     public PvPManager(PvPTogglePlugin plugin) {
         this.plugin = plugin;
@@ -97,19 +100,21 @@ public class PvPManager {
     }
 
     public void saveData() {
-        YamlConfiguration config = new YamlConfiguration();
-        for (Map.Entry<UUID, PlayerData> entry : playerDataMap.entrySet()) {
-            String path = "players." + entry.getKey().toString();
-            PlayerData d = entry.getValue();
-            config.set(path + ".pvp-enabled",            d.isPvpEnabled());
-            config.set(path + ".total-playtime-seconds", d.getTotalPlaytimeSeconds());
-            config.set(path + ".processed-cycles",       d.getProcessedCycles());
-            config.set(path + ".pvp-debt-seconds",       d.getPvpDebtSeconds());
-        }
-        try {
-            config.save(new File(plugin.getDataFolder(), "playerdata.yml"));
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save player data", e);
+        synchronized (saveLock) {
+            YamlConfiguration config = new YamlConfiguration();
+            for (Map.Entry<UUID, PlayerData> entry : playerDataMap.entrySet()) {
+                String path = "players." + entry.getKey().toString();
+                PlayerData d = entry.getValue();
+                config.set(path + ".pvp-enabled",            d.isPvpEnabled());
+                config.set(path + ".total-playtime-seconds", d.getTotalPlaytimeSeconds());
+                config.set(path + ".processed-cycles",       d.getProcessedCycles());
+                config.set(path + ".pvp-debt-seconds",       d.getPvpDebtSeconds());
+            }
+            try {
+                config.save(new File(plugin.getDataFolder(), "playerdata.yml"));
+            } catch (IOException e) {
+                plugin.getLogger().log(Level.SEVERE, "Failed to save player data", e);
+            }
         }
     }
 }
