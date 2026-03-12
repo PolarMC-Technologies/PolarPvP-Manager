@@ -22,12 +22,6 @@ public class PlaytimeManager {
     // Cached config values (updated on reload)
     private long cycleSeconds;
     private int forcedMinutes;
-    
-    // Throttle action bar messages (UUID -> last tick shown)
-    // Safe to use HashMap as runTaskTimer guarantees execution on main thread
-    private final Map<UUID, Integer> lastActionBarTick = new HashMap<>();
-    private int currentTick = 0;
-    private static final int ACTION_BAR_THROTTLE_TICKS = 1; // Show once per second instead of 20x/sec
 
     public PlaytimeManager(PvPTogglePlugin plugin) {
         this.plugin = plugin;
@@ -80,12 +74,10 @@ public class PlaytimeManager {
      * Clean up action bar tracking for a player (called when they disconnect)
      */
     public void cleanupPlayer(UUID playerId) {
-        lastActionBarTick.remove(playerId);
+        // Method retained for API compatibility but no longer needed
     }
 
     private void updatePlayerTimesAndDebt() {
-        currentTick++;
-        
         // Cache online player count once per tick instead of reading multiple times
         int onlinePlayerCount = Bukkit.getOnlinePlayers().size();
 
@@ -128,21 +120,15 @@ public class PlaytimeManager {
             data.setPvpDebtSeconds(0);
             MessageUtil.send(player, "&a&l⚔ Your forced PvP period has ended!");
             MessageUtil.sendActionBar(player, "&a✓ Forced PvP ended");
-            lastActionBarTick.remove(player.getUniqueId());
         } else {
-            // Throttle action bar messages: only send once per second instead of 20x/sec
-            UUID playerId = player.getUniqueId();
-            Integer lastTick = lastActionBarTick.get(playerId);
-            if (lastTick == null || Integer.compareUnsigned(currentTick, lastTick + ACTION_BAR_THROTTLE_TICKS) >= 0) {
-                String status = (onlinePlayerCount >= 2)
-                        ? "&c⚔ Forced PvP"
-                        : "&e⚔ Forced PvP &7(paused — solo)";
-                MessageUtil.sendActionBar(player,
-                        status + " &7| &f"
-                                + MessageUtil.formatTime(data.getPvpDebtSeconds())
-                                + " &7remaining");
-                lastActionBarTick.put(playerId, currentTick);
-            }
+            // Action bar shown once per second (task runs every 20 ticks / 1 second)
+            String status = (onlinePlayerCount >= 2)
+                    ? "&c⚔ Forced PvP"
+                    : "&e⚔ Forced PvP &7(paused — solo)";
+            MessageUtil.sendActionBar(player,
+                    status + " &7| &f"
+                            + MessageUtil.formatTime(data.getPvpDebtSeconds())
+                            + " &7remaining");
         }
     }
 }
