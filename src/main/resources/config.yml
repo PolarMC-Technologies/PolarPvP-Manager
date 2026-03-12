@@ -23,11 +23,20 @@ playtime:
   # How many minutes of forced PvP per cycle
   forced-minutes: 20
 
-# PvP Force Timer (debt-ratio mode — takes priority over legacy playtime if enabled)
+# PvP Force Timer (takes priority over legacy playtime if enabled)
 pvp-force-timer:
   enabled: true
+  # Ratio mode: "debt" or "hourly"
+  #   debt   — X minutes PvP-off = 1 minute forced-PvP debt (tracks PvP-off time)
+  #   hourly — X minutes forced PvP per hour of total playtime (tracks total playtime)
+  ratio-mode: debt
+  # --- debt mode settings ---
   # Debt ratio: X minutes PvP-off = 1 minute forced-PvP debt
   debt-ratio: 5
+  # --- hourly mode settings ---
+  # How many minutes of forced PvP per hour of total playtime
+  hourly-forced-minutes: 20
+  # --- shared settings ---
   # Maximum accumulated debt in minutes
   max-debt: 60
   # Minimum consecutive forced-PvP duration in minutes (debt pays off in blocks of this size)
