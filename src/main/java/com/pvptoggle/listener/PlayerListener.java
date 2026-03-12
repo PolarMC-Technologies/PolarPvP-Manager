@@ -36,9 +36,6 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        // Clean up action bar tracking to prevent memory leaks
-        plugin.getPlaytimeManager().cleanupPlayer(event.getPlayer().getUniqueId());
-        
         // Persist immediately so the player can't dodge debt by leaving
         // Uses async to prevent blocking the main thread during logout
         // Note: If server shuts down immediately after quit, this may not complete.
