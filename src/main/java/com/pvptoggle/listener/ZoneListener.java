@@ -58,7 +58,7 @@ public class ZoneListener implements Listener {
         }
         
         // Validate maximum values to prevent integer overflow (max ~24 days)
-        final int MAX_COOLDOWN_SECONDS = 2147483; // Integer.MAX_VALUE / 1000
+        final int MAX_COOLDOWN_SECONDS = Integer.MAX_VALUE / 1000;
         if (chatCooldownSeconds > MAX_COOLDOWN_SECONDS) {
             plugin.getLogger().warning("[PvPToggle] Value for 'zone-exit-cooldowns.chat' (" 
                     + chatCooldownSeconds + ") exceeds maximum; using " + MAX_COOLDOWN_SECONDS + " instead.");
