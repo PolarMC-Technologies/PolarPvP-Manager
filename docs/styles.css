@@ -441,7 +441,7 @@ a:hover {
     color: var(--primary-color);
 }
 
-a:not(nav a)::after {
+main a::after {
     content: '';
     position: absolute;
     bottom: -2px;
@@ -452,7 +452,7 @@ a:not(nav a)::after {
     transition: width 0.3s ease;
 }
 
-a:not(nav a):hover::after {
+main a:hover::after {
     width: 100%;
 }
 
