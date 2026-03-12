@@ -15,6 +15,7 @@ messages:
   pvp-already-off: "&7Your PvP is already &cdisabled&7."
   pvp-already-forced: "&7PvP is already &cforced on &7for you right now."
   no-permission: "&4&l✘ &cYou don't have permission to do that!"
+  update-available: "&e&lPolarPvP &8» &7Update available: &av%latest% &7(you're on &cv%current%&7)"
 
 # Playtime settings
 playtime:
