@@ -230,7 +230,7 @@ public class PvPAdminCommand implements TabExecutor {
     }
 
     private void handleReload(CommandSender sender) {
-        plugin.reloadConfig();
+        plugin.reloadPluginConfig();
         MessageUtil.send(sender, "&aConfiguration reloaded!");
     }
 
