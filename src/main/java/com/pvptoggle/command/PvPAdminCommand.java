@@ -331,7 +331,7 @@ public class PvPAdminCommand implements TabExecutor {
         Player target = resolveTarget(sender, args, 2);
         if (target == null) return;
 
-        if (args.length < (sender instanceof Player && args.length >= 3 && isPlayerName(args[2]) ? 4 : 3)) {
+        if (args.length < (sender instanceof Player && args.length >= 3 && isOnlinePlayer(args[2]) ? 4 : 3)) {
             MessageUtil.send(sender, "&cUsage: /pvpadmin pvptimer simulate [player] <seconds>");
             return;
         }
@@ -364,16 +364,17 @@ public class PvPAdminCommand implements TabExecutor {
                 "&aAll PvP timer data for &f" + target.getName() + " &ahas been reset (debt, accumulator, forced elapsed).");
     }
 
-    /** Resolve target player: use args[index] if present and valid, otherwise fall back to sender. */
+    /** Resolve target player: use args[index] if present and is an online player, otherwise fall back to sender. */
     private Player resolveTarget(CommandSender sender, String[] args, int index) {
         if (args.length > index) {
             Player target = Bukkit.getPlayerExact(args[index]);
             if (target != null) return target;
-            // If it looks like a player name but isn't online, report error
+            // If the argument doesn't look like a number, treat it as a player name that's not online
             if (!isNumeric(args[index])) {
                 MessageUtil.send(sender, "&cPlayer '&f" + args[index] + "&c' is not online.");
                 return null;
             }
+            // Numeric argument — not a player name, fall through to sender
         }
         if (sender instanceof Player player) return player;
         MessageUtil.send(sender, "&cSpecify an online player name.");
@@ -389,7 +390,7 @@ public class PvPAdminCommand implements TabExecutor {
         }
     }
 
-    private boolean isPlayerName(String s) {
+    private boolean isOnlinePlayer(String s) {
         return Bukkit.getPlayerExact(s) != null;
     }
 
