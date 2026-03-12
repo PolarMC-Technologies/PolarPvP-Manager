@@ -16,12 +16,29 @@ messages:
   pvp-already-forced: "&7PvP is already &cforced on &7for you right now."
   no-permission: "&4&l✘ &cYou don't have permission to do that!"
 
-# Playtime settings
+# Playtime settings (legacy cycle-based mode)
 playtime:
   # How many hours of playtime trigger a forced PvP period
   hours-per-cycle: 1
   # How many minutes of forced PvP per cycle
   forced-minutes: 20
+
+# PvP Force Timer (debt-ratio mode — takes priority over legacy playtime if enabled)
+pvp-force-timer:
+  enabled: true
+  # Debt ratio: X minutes PvP-off = 1 minute forced-PvP debt
+  debt-ratio: 5
+  # Maximum accumulated debt in minutes
+  max-debt: 60
+  # Minimum consecutive forced-PvP duration in minutes (debt pays off in blocks of this size)
+  minimum-forced-duration: 20
+  exemptions:
+    # Don't accumulate debt when PvP is manually enabled
+    manual-pvp: true
+    # Don't accumulate debt when in a forced PvP zone
+    forced-zones: true
+    # Don't accumulate debt or activate forced PvP when alone on the server
+    solo-server: true
 
 # Zone wand material (any valid Bukkit Material name)
 zone-wand-material: BLAZE_ROD
