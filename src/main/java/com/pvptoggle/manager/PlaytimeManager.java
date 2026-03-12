@@ -129,7 +129,7 @@ public class PlaytimeManager {
             // Throttle action bar messages: only send once per second instead of 20x/sec
             UUID playerId = player.getUniqueId();
             Integer lastTick = lastActionBarTick.get(playerId);
-            if (lastTick == null || (currentTick - lastTick) >= ACTION_BAR_THROTTLE_TICKS) {
+            if (lastTick == null || Integer.compareUnsigned(currentTick, lastTick + ACTION_BAR_THROTTLE_TICKS) >= 0) {
                 String status = (onlinePlayerCount >= 2)
                         ? "&c⚔ Forced PvP"
                         : "&e⚔ Forced PvP &7(paused — solo)";
