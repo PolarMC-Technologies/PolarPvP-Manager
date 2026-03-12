@@ -4,8 +4,6 @@ title: Configuration Reference
 description: Configure default PvP state, messages, zone tools, and playtime debt
 ---
 
-# Configuration Reference
-
 The main configuration file lives at `plugins/PolarPvP-Manager/config.yml`.
 
 ## Overview

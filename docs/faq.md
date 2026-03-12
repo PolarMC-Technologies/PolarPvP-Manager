@@ -4,8 +4,6 @@ title: FAQ
 description: Answers to common PolarPvP-Manager questions
 ---
 
-# FAQ
-
 ## Does this plugin work on Paper?
 
 Yes. The plugin targets Bukkit-compatible servers including Spigot, Paper, and Purpur.

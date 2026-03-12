@@ -4,8 +4,6 @@ title: Commands Reference
 description: Complete list of player and admin commands for PolarPvP-Manager
 ---
 
-# Commands Reference
-
 ## Player Commands
 
 ### `/pvp`
@@ -135,7 +133,7 @@ Reload `config.yml` from disk.
 ## Permissions
 
 | Permission | Description | Default |
-|------------|-------------|---------|
+| ---------- | ----------- | ------- |
 | `pvptoggle.use` | Use `/pvp` commands | true |
 | `pvptoggle.admin` | Use `/pvpadmin` commands | op |
 | `pvptoggle.bypass` | Ignore playtime-based forced PvP | op |

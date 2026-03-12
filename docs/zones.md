@@ -4,8 +4,6 @@ title: Zone Management
 description: Create and manage forced PvP regions with the zone selector wand
 ---
 
-# Zone Management
-
 Forced PvP zones are rectangular regions where players cannot disable PvP, even if their manual toggle is off.
 
 ## Use Cases

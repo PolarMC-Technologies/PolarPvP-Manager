@@ -4,8 +4,6 @@ title: Troubleshooting
 description: Diagnose common PolarPvP-Manager setup and behavior issues
 ---
 
-# Troubleshooting
-
 ## Plugin Does Not Load
 
 Check the following first:

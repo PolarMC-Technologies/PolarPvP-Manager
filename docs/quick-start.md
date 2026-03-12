@@ -4,8 +4,6 @@ title: Quick Start Guide
 description: Get PolarPvP-Manager running with the minimum required setup
 ---
 
-# Quick Start Guide
-
 This is the shortest path to a working PolarPvP-Manager installation.
 
 ## Before You Start

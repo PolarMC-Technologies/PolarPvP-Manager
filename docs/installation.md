@@ -4,8 +4,6 @@ title: Installation Guide
 description: Install PolarPvP-Manager on a Bukkit-compatible server
 ---
 
-# Installation Guide
-
 This guide covers plugin installation, first startup, and basic validation.
 
 ## Requirements

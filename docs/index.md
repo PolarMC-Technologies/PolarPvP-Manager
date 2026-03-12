@@ -4,8 +4,6 @@ title: PolarPvP-Manager Documentation
 description: PvP toggle plugin with forced zones and playtime-based PvP enforcement
 ---
 
-# PolarPvP-Manager Documentation
-
 PolarPvP-Manager gives players direct control over their PvP status while giving administrators tools to force PvP in specific regions and during configured playtime debt windows.
 
 ## Overview
