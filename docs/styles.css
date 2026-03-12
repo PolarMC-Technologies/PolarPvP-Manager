@@ -107,6 +107,7 @@ header .subtitle {
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
