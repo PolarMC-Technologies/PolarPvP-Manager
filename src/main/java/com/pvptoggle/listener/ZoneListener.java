@@ -44,6 +44,18 @@ public class ZoneListener implements Listener {
         this.wandMaterial = ConfigUtil.getWandMaterial(plugin.getConfig());
         int chatCooldownSeconds = plugin.getConfig().getInt("zone-exit-cooldowns.chat", 3);
         int actionbarCooldownSeconds = plugin.getConfig().getInt("zone-exit-cooldowns.actionbar", 0);
+
+        if (chatCooldownSeconds < 0) {
+            plugin.getLogger().warning("[PvPToggle] Invalid negative value for 'zone-exit-cooldowns.chat' (" 
+                    + chatCooldownSeconds + "); using 0 instead.");
+            chatCooldownSeconds = 0;
+        }
+
+        if (actionbarCooldownSeconds < 0) {
+            plugin.getLogger().warning("[PvPToggle] Invalid negative value for 'zone-exit-cooldowns.actionbar' (" 
+                    + actionbarCooldownSeconds + "); using 0 instead.");
+            actionbarCooldownSeconds = 0;
+        }
         this.chatCooldownMillis = chatCooldownSeconds * 1000L;
         this.actionbarCooldownMillis = actionbarCooldownSeconds * 1000L;
     }
