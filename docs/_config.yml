@@ -1,0 +1,16 @@
+title: PolarPvP-Manager Documentation
+description: PvP toggle plugin with forced zones and playtime-based PvP enforcement
+baseurl: "/PolarPvP-Manager"
+url: ""
+theme: jekyll-theme-cayman
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+show_downloads: false
+
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
