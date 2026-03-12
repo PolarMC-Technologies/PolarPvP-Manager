@@ -92,7 +92,8 @@ public class PvPTogglePlugin extends JavaPlugin {
         if (playtimeManager != null) playtimeManager.loadConfigValues();
         if (zoneManager != null) zoneManager.loadZones();
         if (combatListener != null) combatListener.loadConfig();
-        if (zoneListener != null) zoneListener.loadConfig();
+        if (zoneManager != null)     zoneManager.loadZones();
+        if (zoneListener != null)    zoneListener.loadConfig();
     }
 
     public PvPManager      getPvPManager()      { return pvpManager; }
