@@ -57,17 +57,5 @@ Build:
 Run `mvn clean package`.
 Jar will be in `target/PolarPvP-Manager-1.0.0.jar`.
 
-Performance:
-This plugin has been optimized for high performance:
-- Config values are cached to avoid disk reads
-- Action bar messages are throttled to reduce network spam
-- File operations are asynchronous to prevent server lag
-- Zone lookups use an LRU cache for fast checks
-
-For technical details, see:
-- `SUMMARY.md` — Executive overview of performance improvements
-- `PERFORMANCE_IMPROVEMENTS.md` — Detailed technical documentation
-- `TESTING_GUIDE.md` — Comprehensive testing procedures
-
 License: 
 GPL3
