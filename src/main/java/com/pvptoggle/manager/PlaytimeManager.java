@@ -24,7 +24,7 @@ public class PlaytimeManager {
     private int forcedMinutes;
     
     // Throttle action bar messages (UUID -> last tick shown)
-    // Using HashMap as this is only accessed from main thread
+    // Safe to use HashMap as runTaskTimer guarantees execution on main thread
     private final Map<UUID, Integer> lastActionBarTick = new HashMap<>();
     private int currentTick = 0;
     private static final int ACTION_BAR_THROTTLE_TICKS = 20; // Show once per second instead of 20x/sec
