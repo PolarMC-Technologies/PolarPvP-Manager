@@ -74,6 +74,8 @@ public class PvPTogglePlugin extends JavaPlugin {
     public void onDisable() {
         if (playtimeManager != null) playtimeManager.stopTracking();
 
+        // Synchronous saves on shutdown to ensure data is persisted
+        // Async saves during normal operation, but shutdown requires completion
         if (pvpManager != null)  pvpManager.saveData();
         if (zoneManager != null) zoneManager.saveZones();
 
