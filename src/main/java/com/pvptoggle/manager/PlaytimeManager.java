@@ -134,12 +134,13 @@ public class PlaytimeManager {
                     }
                 }
 
-                // When debt first becomes positive, start the forced block
-                if (data.getPvpDebtSeconds() > 0 && data.getForcedPvpElapsed() == 0) {
+                // Debt just transitioned from 0 to positive this tick — start forced block
+                if (!currentlyForced && data.getPvpDebtSeconds() > 0) {
                     // Enforce minimum forced duration: bump debt up if below minimum
                     if (data.getPvpDebtSeconds() < minForcedSeconds) {
                         data.setPvpDebtSeconds(minForcedSeconds);
                     }
+                    data.setForcedPvpElapsed(0);
                     MessageUtil.send(player,
                             "&c&l⚔ Forced PvP activated! &7Duration: &f"
                                     + MessageUtil.formatTime(data.getPvpDebtSeconds()));
