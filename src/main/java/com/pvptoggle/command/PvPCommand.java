@@ -118,11 +118,16 @@ public class PvPCommand implements TabExecutor {
 
         MessageUtil.send(player, "&7Total playtime: &f" + MessageUtil.formatTime(data.getTotalPlaytimeSeconds()));
 
-        if (plugin.getConfig().getBoolean("pvp-force-timer.enabled", false)
-                && data.getPvpOffAccumulator() > 0) {
-            int ratio = plugin.getConfig().getInt("pvp-force-timer.debt-ratio", 5);
-            MessageUtil.send(player, "&7PvP-off time: &f" + MessageUtil.formatTime(data.getPvpOffAccumulator())
-                    + " &7/ &f" + ratio + "m &7until debt");
+        if (plugin.getConfig().getBoolean("pvp-force-timer.enabled", false)) {
+            String ratioMode = plugin.getConfig().getString("pvp-force-timer.ratio-mode", "debt");
+            if ("hourly".equalsIgnoreCase(ratioMode)) {
+                int forcedMin = plugin.getConfig().getInt("pvp-force-timer.hourly-forced-minutes", 20);
+                MessageUtil.send(player, "&7Forced PvP rate: &f" + forcedMin + "m &7per hour of playtime");
+            } else if (data.getPvpOffAccumulator() > 0) {
+                int ratio = plugin.getConfig().getInt("pvp-force-timer.debt-ratio", 5);
+                MessageUtil.send(player, "&7PvP-off time: &f" + MessageUtil.formatTime(data.getPvpOffAccumulator())
+                        + " &7/ &f" + ratio + "m &7until debt");
+            }
         }
     }
 
