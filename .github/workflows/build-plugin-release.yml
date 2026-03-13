@@ -1,4 +1,4 @@
-name: Build Plugin Zip And Tag Release
+name: Build Plugin Jar And Tag Release
 
 'on':
   push:
@@ -32,7 +32,7 @@ jobs:
       - name: Build with Maven
         run: mvn -B clean package
 
-      - name: Package plugin zip
+      - name: Select plugin jar
         id: package
         shell: bash
         run: |
@@ -55,35 +55,26 @@ jobs:
             fi
           fi
 
-          JAR_PATH="$(find target -maxdepth 1 -type f -name '*.jar' ! -name '*sources.jar' ! -name '*javadoc.jar' ! -name 'original-*' | head -n 1)"
+          JAR_PATH="$(ls target/*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | grep -v 'original-' | head -n 1)"
           if [[ -z "${JAR_PATH}" ]]; then
             echo "No plugin jar found in target/."
             exit 1
           fi
 
           JAR_NAME="$(basename "${JAR_PATH}")"
-          ZIP_NAME="plugin-${VERSION}.zip"
-          ZIP_PATH="target/${ZIP_NAME}"
-
-          (
-            cd target
-            zip -j "${ZIP_NAME}" "${JAR_NAME}"
-          )
 
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
           echo "tag=${TAG_NAME}" >> "${GITHUB_OUTPUT}"
           echo "jar=${JAR_PATH}" >> "${GITHUB_OUTPUT}"
           echo "jar_name=${JAR_NAME}" >> "${GITHUB_OUTPUT}"
-          echo "asset=${ZIP_PATH}" >> "${GITHUB_OUTPUT}"
-          echo "asset_name=${ZIP_NAME}" >> "${GITHUB_OUTPUT}"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: plugin-zip
-          path: ${{ steps.package.outputs.asset }}
+          name: plugin-jar
+          path: ${{ steps.package.outputs.jar }}
 
-      - name: Create tag release with zip
+      - name: Create tag release with jar
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.package.outputs.tag }}
@@ -91,4 +82,4 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
-          files: ${{ steps.package.outputs.asset }}
+          files: ${{ steps.package.outputs.jar }}
