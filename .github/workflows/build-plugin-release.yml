@@ -5,6 +5,11 @@ name: Build Plugin Zip And Tag Release
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Optional tag name for manual runs (example: v2.2.1). Defaults to pom version tag."
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -34,12 +39,20 @@ jobs:
           set -euo pipefail
 
           VERSION="$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)"
-          TAG_NAME="${GITHUB_REF_NAME}"
+          EXPECTED_TAG="v${VERSION}"
 
-          if [[ "${TAG_NAME}" != "v${VERSION}" ]]; then
-            echo "Tag '${TAG_NAME}' does not match pom version 'v${VERSION}'."
-            echo "Use a matching tag (example: v${VERSION})."
-            exit 1
+          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+            TAG_NAME="${GITHUB_REF_NAME}"
+            if [[ "${TAG_NAME}" != "${EXPECTED_TAG}" ]]; then
+              echo "Tag '${TAG_NAME}' does not match pom version '${EXPECTED_TAG}'."
+              echo "Use a matching tag (example: ${EXPECTED_TAG})."
+              exit 1
+            fi
+          else
+            TAG_NAME="${{ inputs.release_tag }}"
+            if [[ -z "${TAG_NAME}" ]]; then
+              TAG_NAME="${EXPECTED_TAG}"
+            fi
           fi
 
           JAR_PATH="$(ls target/*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | grep -v 'original-' | head -n 1)"
