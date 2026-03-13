@@ -1,6 +1,6 @@
 name: Build Plugin Zip And Tag Release
 
-on:
+'on':
   push:
     tags:
       - 'v*'
