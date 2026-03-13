@@ -62,7 +62,7 @@ public class PvPCommand implements TabExecutor {
     }
 
     private void toggleOff(Player player) {
-        // Prevent toggling off while forced
+        // prevent toggling off while forced
         if (plugin.getPvPManager().isForcedPvP(player)) {
             if (plugin.getZoneManager().isInForcedPvPZone(player.getLocation())) {
                 MessageUtil.send(player,

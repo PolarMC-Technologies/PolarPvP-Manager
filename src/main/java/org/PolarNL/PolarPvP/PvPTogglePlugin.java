@@ -21,7 +21,7 @@ public class PvPTogglePlugin extends JavaPlugin {
     private ZoneManager zoneManager;
     private PlaytimeManager playtimeManager;
     
-    // Store listener references for config reloading
+    // store listener refs for config reloads
     private CombatListener combatListener;
     private ZoneListener zoneListener;
 
@@ -74,21 +74,18 @@ public class PvPTogglePlugin extends JavaPlugin {
     public void onDisable() {
         if (playtimeManager != null) playtimeManager.stopTracking();
 
-        // Synchronous saves on shutdown to ensure data is persisted
-        // Async saves during normal operation, but shutdown requires completion
+        // sync saves on shutdown so data is persisted
+        // async saves are fine during normal operation, but shutdown must finish writes
         if (pvpManager != null)  pvpManager.saveData();
         if (zoneManager != null) zoneManager.saveZones();
 
         getLogger().info("PvPToggle disabled, data saved.");
     }
     
-    /**
-     * Reload config and update all cached values
-     */
     public void reloadPluginConfig() {
         reloadConfig();
         
-        // Reload cached config values in managers and listeners
+        // reload cached config values in managers and listeners
         if (playtimeManager != null) playtimeManager.loadConfigValues();
         if (zoneManager != null) zoneManager.loadZones();
         if (combatListener != null) combatListener.loadConfig();

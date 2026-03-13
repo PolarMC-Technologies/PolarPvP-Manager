@@ -7,10 +7,6 @@ public final class ConfigUtil {
 
     private ConfigUtil() {}
 
-    /**
-     * Gets the configured zone wand material from config.
-     * Returns BLAZE_ROD as default if config value is invalid or missing.
-     */
     public static Material getWandMaterial(FileConfiguration config) {
         try {
             String matConfig = config.getString("zone-wand-material");

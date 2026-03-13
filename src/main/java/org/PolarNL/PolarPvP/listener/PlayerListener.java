@@ -22,7 +22,7 @@ public class PlayerListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         PlayerData data = plugin.getPvPManager().getPlayerData(event.getPlayer().getUniqueId());
 
-        // If they have debt, remind them after login
+        // if they have debt, remind them after login
         if (data.getPvpDebtSeconds() > 0 && !event.getPlayer().hasPermission("pvptoggle.bypass")) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 if (event.getPlayer().isOnline()) {
@@ -36,10 +36,10 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        // Persist immediately so the player can't dodge debt by leaving
-        // Uses async to prevent blocking the main thread during logout
-        // Note: If server shuts down immediately after quit, this may not complete.
-        // However, onDisable() performs a synchronous save to handle shutdown case.
+        // persist immediately so the player can't dodge debt by leaving
+        // use async to avoid blocking the main thread during logout
+        // note: if the server shuts down right after quit, this may not complete.
+        // onDisable() still performs a sync save for shutdown cases.
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             plugin.getPvPManager().saveData();
         });

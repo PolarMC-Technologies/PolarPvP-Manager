@@ -44,12 +44,12 @@ public class UpdateChecker implements Listener {
                     while ((line = reader.readLine()) != null) jsonResponse.append(line);
                 }
 
-                // Ghetto JSON parse - just grab "tag_name":"vX.X.X"
+                // quick json parse - just grab "tag_name":"vX.X.X"
                 String json = jsonResponse.toString();
                 String tag = extractTag(json);
                 if (tag == null) return;
 
-                // Strip leading 'v' if present
+                // strip leading 'v' if present
                 String remote = tag.startsWith("v") ? tag.substring(1) : tag;
                 String current = plugin.getDescription().getVersion();
 
@@ -97,7 +97,7 @@ public class UpdateChecker implements Listener {
         return json.substring(start + 1, end);
     }
 
-    // Simple version comparison: 1.1.0 > 1.0.0
+    // simple version comparison: 1.1.0 > 1.0.0
     private boolean isNewer(String remote, String current) {
         String[] remoteParts = remote.split("\\.");
         String[] currentParts = current.split("\\.");

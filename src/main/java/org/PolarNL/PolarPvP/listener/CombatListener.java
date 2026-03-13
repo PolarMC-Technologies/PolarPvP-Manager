@@ -15,16 +15,13 @@ import org.PolarNL.PolarPvP.util.MessageUtil;
 public class CombatListener implements Listener {
 
     private final PvPTogglePlugin plugin;
-    private boolean debugEnabled; // Cached debug flag
+    private boolean debugEnabled; // cached debug flag
 
     public CombatListener(PvPTogglePlugin plugin) {
         this.plugin = plugin;
         loadConfig();
     }
     
-    /**
-     * Load and cache config values (called on plugin enable and reload)
-     */
     public void loadConfig() {
         this.debugEnabled = plugin.getConfig().getBoolean("debug", false);
     }

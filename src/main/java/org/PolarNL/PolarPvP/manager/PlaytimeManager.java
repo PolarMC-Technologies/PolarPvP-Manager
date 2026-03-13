@@ -18,7 +18,7 @@ public class PlaytimeManager {
     private BukkitTask tickTask;
     private BukkitTask saveTask;
     
-    // Cached config values (updated on reload)
+    // cached config values (updated on reload)
     private long cycleSeconds;
     private int forcedMinutes;
 
@@ -27,13 +27,10 @@ public class PlaytimeManager {
         loadConfigValues();
     }
     
-    /**
-     * Load and cache config values to avoid reading config 20x per second
-     */
     public void loadConfigValues() {
         int hoursPerCycle = plugin.getConfig().getInt("playtime.hours-per-cycle", 1);
         
-        // Validate hours-per-cycle to prevent division by zero
+        // validate hours-per-cycle to prevent division by zero
         if (hoursPerCycle < 1) {
             plugin.getLogger().log(Level.WARNING, "[PvPToggle] Invalid value for ''playtime.hours-per-cycle'' ({0}); using 1 instead.", hoursPerCycle);
             hoursPerCycle = 1;
@@ -52,7 +49,7 @@ public class PlaytimeManager {
             }
         }.runTaskTimer(plugin, 20L, 20L);
 
-        // Auto-save (async to prevent blocking)
+        // auto-save (async to avoid blocking)
         long saveIntervalTicks = plugin.getConfig().getInt("save-interval", 5) * 60L * 20L;
         saveTask = new BukkitRunnable() {
             @Override
@@ -62,9 +59,6 @@ public class PlaytimeManager {
         }.runTaskTimer(plugin, saveIntervalTicks, saveIntervalTicks);
     }
     
-    /**
-     * Save data asynchronously to prevent blocking the main thread
-     */
     private void saveDataAsync() {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             plugin.getPvPManager().saveData();
@@ -77,21 +71,13 @@ public class PlaytimeManager {
         if (saveTask != null) saveTask.cancel();
     }
     
-    /**
-     * Clean up action bar tracking for a player (called when they disconnect).
-     * No longer performs any operation as throttling has been removed.
-     * 
-     * @param playerId the UUID of the player
-     * @deprecated Since 1.0.0: removal of action bar throttling; no replacement needed as
-     *             cleanup is no longer required. Safe to call but performs no operation.
-     */
     @Deprecated(forRemoval = true, since = "1.0.0")
     public void cleanupPlayer(UUID playerId) {
-        // No-op: throttling removed since task already runs at 1-second intervals
+        // no-op: throttling removed since task already runs at 1-second intervals
     }
 
     private void updatePlayerTimesAndDebt() {
-        // Cache online player count once per tick instead of reading multiple times
+        // cache online player count once per tick instead of reading multiple times
         int onlinePlayerCount = Bukkit.getOnlinePlayers().size();
 
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -130,7 +116,7 @@ public class PlaytimeManager {
             MessageUtil.send(player, "&a&l⚔ Your forced PvP period has ended!");
             MessageUtil.sendActionBar(player, "&a✓ Forced PvP ended");
         } else {
-            // Action bar shown once per second (task runs every 20 ticks / 1 second)
+            // action bar shown once per second (task runs every 20 ticks / 1 second)
             String status = (onlinePlayerCount >= 2)
                     ? "&c⚔ Forced PvP"
                     : "&e⚔ Forced PvP &7(paused — solo)";

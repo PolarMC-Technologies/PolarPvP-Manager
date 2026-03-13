@@ -20,7 +20,7 @@ public class PvPManager {
     private final PvPTogglePlugin plugin;
     private final Map<UUID, PlayerData> playerDataMap = new ConcurrentHashMap<>();
     
-    // Synchronize writes to player data file
+    // sync writes to the player data file
     private final Object saveLock = new Object();
 
     public PvPManager(PvPTogglePlugin plugin) {

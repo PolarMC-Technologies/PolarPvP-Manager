@@ -30,7 +30,7 @@ public class ZoneListener implements Listener {
     private final PvPTogglePlugin plugin;
     private final Map<UUID, Long> chatExitCooldowns = new ConcurrentHashMap<>();
     private final Map<UUID, Long> actionbarExitCooldowns = new ConcurrentHashMap<>();
-    private Material wandMaterial; // Cached wand material
+    private Material wandMaterial; // cached wand material
     private long chatCooldownMillis;
     private long actionbarCooldownMillis;
 
@@ -39,9 +39,6 @@ public class ZoneListener implements Listener {
         loadConfig();
     }
     
-    /**
-     * Load and cache config values (called on plugin enable and reload)
-     */
     public void loadConfig() {
         this.wandMaterial = ConfigUtil.getWandMaterial(plugin.getConfig());
         int chatCooldownSeconds = plugin.getConfig().getInt("zone-exit-cooldowns.chat", 3);
@@ -97,7 +94,7 @@ public class ZoneListener implements Listener {
 
         Location from = event.getFrom();
 
-        // Only check when the player crosses a block boundary
+        // only check when the player crosses a block boundary
         if (from.getBlockX() == to.getBlockX()
                 && from.getBlockY() == to.getBlockY()
                 && from.getBlockZ() == to.getBlockZ()) {
@@ -127,27 +124,27 @@ public class ZoneListener implements Listener {
     
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        // Clean up cooldown data when player leaves to prevent memory leak
+        // clean up cooldown data when player leaves to prevent memory leak
         UUID playerId = event.getPlayer().getUniqueId();
         chatExitCooldowns.remove(playerId);
         actionbarExitCooldowns.remove(playerId);
     }
 
     private boolean isCooldownReady(Map<UUID, Long> cooldownMap, UUID playerId, long cooldownMillis, long currentTime) {
-        // Early return when cooldown is disabled to avoid unnecessary map operations
+        // early return when cooldown is disabled to avoid unnecessary map operations
         if (cooldownMillis == 0) {
             return true;
         }
         
-        // Use AtomicBoolean to capture whether the cooldown was ready inside the lambda
-        // This avoids false positives when lastTime equals currentTime from a previous call
+        // use AtomicBoolean to capture whether cooldown was ready inside the lambda
+        // this avoids false positives when lastTime equals currentTime from a previous call
         final AtomicBoolean wasReady = new AtomicBoolean(false);
         cooldownMap.compute(playerId, (id, lastTime) -> {
             if (lastTime == null || (currentTime - lastTime) >= cooldownMillis) {
                 wasReady.set(true);
-                return currentTime; // Cooldown ready - update timestamp
+                return currentTime; // cooldown ready - update timestamp
             }
-            return lastTime; // Cooldown not ready - keep old timestamp
+            return lastTime; // cooldown not ready - keep old timestamp
         });
         
         return wasReady.get();

@@ -25,41 +25,34 @@ public class ZoneManager {
     private final Map<String, PvPZone> zones = new LinkedHashMap<>();      // key = lowercase name
     private final Map<UUID, Location[]> selections = new HashMap<>();      // [0]=pos1, [1]=pos2
     
-    // LRU cache for zone lookups with automatic eviction
-    // Wrapped in synchronizedMap for thread-safety across all operations
+    // lru cache for zone lookups with automatic eviction
+    // wrapped in synchronizedMap for thread-safety across all operations
     private final Map<String, Boolean> zoneCache = Collections.synchronizedMap(
         new LinkedHashMap<String, Boolean>(10000, 0.75f, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest) {
-                return size() > 10000; // LRU eviction when cache exceeds 10k entries
+                return size() > 10000; // lru eviction when cache exceeds 10k entries
             }
         }
     );
-    // Synchronize writes to zone file
+    // sync writes to the zone file
     private final Object saveLock = new Object();
 
     public ZoneManager(PvPTogglePlugin plugin) {
         this.plugin = plugin;
     }
     
-    /**
-     * Clear the zone cache (called when zones are modified)
-     */
     private void clearZoneCache() {
         zoneCache.clear();
     }
     
-    /**
-     * Generate a cache key for a location
-     * Uses StringBuilder for performance as this is called frequently
-     */
     private String getLocationCacheKey(Location loc) {
         World world = loc.getWorld();
         if (world == null) {
-            return "null:0:0:0"; // Fallback for null worlds
+            return "null:0:0:0"; // fallback for null worlds
         }
         String worldName = world.getName();
-        // Pre-allocate capacity: world name plus delimiters and coordinates (30 extra chars for colons and coords)
+        // pre-allocate capacity: world name plus delimiters and coordinates (30 extra chars for colons and coords)
         return new StringBuilder(worldName.length() + 30)
             .append(worldName)
             .append(':')
@@ -94,7 +87,7 @@ public class ZoneManager {
                 selection[1].getBlockX(), selection[1].getBlockY(), selection[1].getBlockZ()));
         synchronized (saveLock) {
             zones.put(name.toLowerCase(), zone);
-            clearZoneCache(); // Clear cache when zones change
+            clearZoneCache(); // clear cache when zones change
         }
         saveZonesAsync();
         return true;
@@ -105,7 +98,7 @@ public class ZoneManager {
         synchronized (saveLock) {
             removed = zones.remove(name.toLowerCase()) != null;
             if (removed) {
-                clearZoneCache(); // Clear cache when zones change
+                clearZoneCache(); // clear cache when zones change
             }
         }
         if (removed) {
@@ -135,14 +128,14 @@ public class ZoneManager {
     public boolean isInForcedPvPZone(Location location) {
         if (location == null || location.getWorld() == null) return false;
         
-        // Check cache first
+        // check cache first
         String cacheKey = getLocationCacheKey(location);
         Boolean cached = zoneCache.get(cacheKey);
         if (cached != null) {
             return cached;
         }
         
-        // Not in cache, check all zones with snapshot to avoid CME
+        // not in cache, check all zones with a snapshot to avoid CME
         Collection<PvPZone> zoneSnapshot;
         synchronized (saveLock) {
             zoneSnapshot = new java.util.ArrayList<>(zones.values());
@@ -156,7 +149,7 @@ public class ZoneManager {
             }
         }
         
-        // Cache the result
+        // cache the result
         zoneCache.put(cacheKey, inZone);
         
         return inZone;
@@ -170,7 +163,7 @@ public class ZoneManager {
 
         int loadedCount;
         synchronized (saveLock) {
-            // Clear existing zones to remove any that were deleted from zones.yml
+            // clear existing zones to remove any deleted from zones.yml
             zones.clear();
             
             for (String key : section.getKeys(false)) {
@@ -185,7 +178,7 @@ public class ZoneManager {
                 ));
             }
             loadedCount = zones.size();
-            clearZoneCache(); // Clear cache when zones are reloaded
+            clearZoneCache(); // clear cache when zones are reloaded
         }
         plugin.getLogger().log(Level.INFO, "Loaded {0} PvP zone(s).", loadedCount);
     }
@@ -210,17 +203,8 @@ public class ZoneManager {
         }
     }
     
-    /**
-     * Save zones asynchronously to prevent blocking the main thread.
-     * 
-     * This method uses a snapshot approach for eventual consistency:
-     * - A consistent snapshot is taken under lock to prevent ConcurrentModificationException
-     * - The snapshot is written to disk without holding the lock to avoid blocking mutations
-     * - Mutations that occur after snapshot but before write completes will be saved on next save
-     * - This trade-off is acceptable for zone data which changes infrequently
-     */
     private void saveZonesAsync() {
-        // Snapshot zones under synchronization to prevent ConcurrentModificationException
+        // snapshot zones under synchronization to prevent ConcurrentModificationException
         final Map<String, PvPZone> zoneSnapshot;
         synchronized (saveLock) {
             zoneSnapshot = new LinkedHashMap<>(zones);
@@ -228,13 +212,6 @@ public class ZoneManager {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> saveZonesSnapshot(zoneSnapshot));
     }
     
-    /**
-     * Save a snapshot of zones to disk.
-     * 
-     * Note: This operates on a point-in-time snapshot without holding locks during I/O.
-     * Any mutations that occur after the snapshot was taken will not be reflected in this write,
-     * but will be captured by the next save operation (eventual consistency).
-     */
     private void saveZonesSnapshot(Map<String, PvPZone> zoneSnapshot) {
         YamlConfiguration config = new YamlConfiguration();
         for (Map.Entry<String, PvPZone> entry : zoneSnapshot.entrySet()) {
