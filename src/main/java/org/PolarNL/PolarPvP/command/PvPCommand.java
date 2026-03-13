@@ -1,4 +1,4 @@
-package com.pvptoggle.command;
+package org.PolarNL.PolarPvP.command;
 
 import java.util.Collections;
 import java.util.List;
@@ -10,9 +10,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 
-import com.pvptoggle.PvPTogglePlugin;
-import com.pvptoggle.model.PlayerData;
-import com.pvptoggle.util.MessageUtil;
+import org.PolarNL.PolarPvP.PvPTogglePlugin;
+import org.PolarNL.PolarPvP.model.PlayerData;
+import org.PolarNL.PolarPvP.util.MessageUtil;
 
 // /pvp on|off|status
 public class PvPCommand implements TabExecutor {

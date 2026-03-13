@@ -1,4 +1,4 @@
-package com.pvptoggle.util;
+package org.PolarNL.PolarPvP.util;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;

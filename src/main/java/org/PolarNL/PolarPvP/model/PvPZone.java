@@ -1,4 +1,4 @@
-package com.pvptoggle.model;
+package org.PolarNL.PolarPvP.model;
 
 import org.bukkit.Location;
 import org.bukkit.World;

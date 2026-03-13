@@ -1,19 +1,19 @@
-package com.pvptoggle;
+package org.PolarNL.PolarPvP;
 
 import java.util.Objects;
 import java.util.logging.Level;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.pvptoggle.command.PvPAdminCommand;
-import com.pvptoggle.command.PvPCommand;
-import com.pvptoggle.listener.CombatListener;
-import com.pvptoggle.listener.PlayerListener;
-import com.pvptoggle.listener.ZoneListener;
-import com.pvptoggle.manager.PlaytimeManager;
-import com.pvptoggle.manager.PvPManager;
-import com.pvptoggle.manager.ZoneManager;
-import com.pvptoggle.util.UpdateChecker;
+import org.PolarNL.PolarPvP.command.PvPAdminCommand;
+import org.PolarNL.PolarPvP.command.PvPCommand;
+import org.PolarNL.PolarPvP.listener.CombatListener;
+import org.PolarNL.PolarPvP.listener.PlayerListener;
+import org.PolarNL.PolarPvP.listener.ZoneListener;
+import org.PolarNL.PolarPvP.manager.PlaytimeManager;
+import org.PolarNL.PolarPvP.manager.PvPManager;
+import org.PolarNL.PolarPvP.manager.ZoneManager;
+import org.PolarNL.PolarPvP.util.UpdateChecker;
 
 public class PvPTogglePlugin extends JavaPlugin {
 

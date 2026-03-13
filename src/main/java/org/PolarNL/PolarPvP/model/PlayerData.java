@@ -1,4 +1,4 @@
-package com.pvptoggle.model;
+package org.PolarNL.PolarPvP.model;
 
 public class PlayerData {
 

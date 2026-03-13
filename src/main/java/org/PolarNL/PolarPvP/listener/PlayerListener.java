@@ -1,4 +1,4 @@
-package com.pvptoggle.listener;
+package org.PolarNL.PolarPvP.listener;
 
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -6,9 +6,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import com.pvptoggle.PvPTogglePlugin;
-import com.pvptoggle.model.PlayerData;
-import com.pvptoggle.util.MessageUtil;
+import org.PolarNL.PolarPvP.PvPTogglePlugin;
+import org.PolarNL.PolarPvP.model.PlayerData;
+import org.PolarNL.PolarPvP.util.MessageUtil;
 
 public class PlayerListener implements Listener {
 

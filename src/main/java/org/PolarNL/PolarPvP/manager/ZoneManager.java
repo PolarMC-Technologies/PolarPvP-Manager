@@ -1,4 +1,4 @@
-package com.pvptoggle.manager;
+package org.PolarNL.PolarPvP.manager;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -15,9 +15,9 @@ import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import com.pvptoggle.PvPTogglePlugin;
-import com.pvptoggle.model.PvPZone;
-import com.pvptoggle.util.YamlUtil;
+import org.PolarNL.PolarPvP.PvPTogglePlugin;
+import org.PolarNL.PolarPvP.model.PvPZone;
+import org.PolarNL.PolarPvP.util.YamlUtil;
 
 public class ZoneManager {
 

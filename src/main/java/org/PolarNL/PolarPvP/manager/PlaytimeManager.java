@@ -1,13 +1,13 @@
-package com.pvptoggle.manager;
+package org.PolarNL.PolarPvP.manager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import com.pvptoggle.PvPTogglePlugin;
-import com.pvptoggle.model.PlayerData;
-import com.pvptoggle.util.MessageUtil;
+import org.PolarNL.PolarPvP.PvPTogglePlugin;
+import org.PolarNL.PolarPvP.model.PlayerData;
+import org.PolarNL.PolarPvP.util.MessageUtil;
 
 import java.util.UUID;
 import java.util.logging.Level;

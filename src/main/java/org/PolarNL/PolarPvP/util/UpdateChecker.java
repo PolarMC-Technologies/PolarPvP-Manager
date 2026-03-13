@@ -1,4 +1,4 @@
-package com.pvptoggle.util;
+package org.PolarNL.PolarPvP.util;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -12,7 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import com.pvptoggle.PvPTogglePlugin;
+import org.PolarNL.PolarPvP.PvPTogglePlugin;
 
 public class UpdateChecker implements Listener {
 

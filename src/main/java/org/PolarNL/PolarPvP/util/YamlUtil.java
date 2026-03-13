@@ -1,4 +1,4 @@
-package com.pvptoggle.util;
+package org.PolarNL.PolarPvP.util;
 
 import java.io.File;
 import java.io.IOException;

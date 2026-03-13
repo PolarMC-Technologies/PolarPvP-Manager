@@ -1,4 +1,4 @@
-package com.pvptoggle.util;
+package org.PolarNL.PolarPvP.util;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
